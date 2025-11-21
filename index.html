@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Galaxy Defender v2</title>
+    <title>Gemini Galaxy Defender v3 - Educational</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
     <style>
         body {
@@ -18,6 +19,9 @@
             overflow: hidden;
             touch-action: none;
         }
+
+        /* Font leggibile per le schede educative */
+        .font-readable { font-family: 'Inter', sans-serif; }
 
         #game-container {
             position: relative;
@@ -61,7 +65,7 @@
             text-align: left;
         }
 
-        /* Schermate */
+        /* Schermate (Menu, GameOver, Info) */
         .menu-screen {
             position: absolute;
             top: 50%;
@@ -72,10 +76,68 @@
             padding: 40px;
             border: 4px solid #6366f1;
             border-radius: 20px;
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 50px rgba(99, 102, 241, 0.6);
             pointer-events: auto;
             z-index: 100;
             min-width: 320px;
+        }
+
+        /* Scheda Educativa Popup */
+        .info-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: white;
+            color: #1e293b;
+            padding: 0;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            pointer-events: auto;
+            z-index: 200;
+            width: 90%;
+            max-width: 400px;
+            text-align: left;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .info-card.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .card-header {
+            padding: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .card-icon {
+            width: 50px; height: 50px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .card-example {
+            background: #f1f5f9;
+            border-left: 4px solid #94a3b8;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 14px;
+            color: #475569;
+            font-style: italic;
         }
 
         .hidden { display: none !important; }
@@ -102,7 +164,20 @@
             margin-top: 20px;
         }
         
-        .btn-start:hover { transform: scale(1.1); }
+        .btn-action {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Press Start 2P', cursive;
+            color: white;
+        }
+        
+        .btn-start:hover, .btn-action:hover { transform: scale(1.02); brightness: 1.1; }
 
         .controls-hint {
             margin-top: 30px;
@@ -155,6 +230,25 @@
             <button class="btn-start" onclick="startGame()">LAUNCH MISSION</button>
         </div>
 
+        <!-- INFO CARD POPUP (Hidden by default) -->
+        <div id="infoCard" class="info-card hidden font-readable">
+            <div id="cardHeader" class="card-header bg-blue-600">
+                <div class="card-icon"><i id="cardIconClass" class="fas fa-star"></i></div>
+                <div>
+                    <h2 id="cardTitle" class="text-xl font-bold m-0 font-sans">Feature Name</h2>
+                    <span class="text-xs opacity-80 uppercase tracking-wider">Gemini Power-Up</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p id="cardDesc" class="text-gray-700 text-lg leading-relaxed mb-2">Description goes here.</p>
+                <div class="card-example">
+                    <strong class="block text-xs uppercase text-gray-500 mb-1">Esempio Reale:</strong>
+                    <span id="cardExample">"Example text"</span>
+                </div>
+            </div>
+            <button id="cardBtn" class="btn-action bg-blue-600" onclick="resumeGame()">EQUIPAGGIA ARMA</button>
+        </div>
+
         <!-- GAME OVER SCREEN -->
         <div id="gameOverScreen" class="menu-screen hidden">
             <h1 style="color: #ef4444;">MISSION FAILED</h1>
@@ -174,11 +268,12 @@
         const ctx = canvas.getContext('2d');
         const zallyImg = document.getElementById('img-zally');
 
+        // --- GAME STATE ---
         let gameRunning = false;
+        let isPaused = false; // Nuovo stato pausa per le schede
         let score = 0;
         let frames = 0;
         
-        // Canvas Size
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -189,37 +284,63 @@
         // --- CONFIG ---
         const SETTINGS = {
             playerSpeed: 8,
-            fireRate: 15, // Più basso = più veloce (frame tra un colpo e l'altro)
-            enemySpawnRate: 50 // Più basso = più nemici
+            fireRate: 15,
+            enemySpawnRate: 50
+        };
+
+        // --- DATA SCHEDE EDUCATIVE ---
+        const POWERUP_INFO = {
+            2: { // Summarize
+                title: "SUMMARIZE",
+                desc: "Riassumi lunghe catene di email o documenti complessi in un istante.",
+                example: "\"Riassumi questo thread di 20 email con il fornitore e lista solo le azioni aperte per me.\"",
+                color: "#3b82f6",
+                icon: "fa-compress-alt"
+            },
+            3: { // Creative / Help Me Write
+                title: "HELP ME WRITE",
+                desc: "Sblocca il blocco dello scrittore. Genera bozze di email o testi in secondi.",
+                example: "\"Scrivi una mail gentile ma ferma al fornitore per chiedere la data di consegna mancante.\"",
+                color: "#a855f7",
+                icon: "fa-pen-fancy"
+            },
+            4: { // Analyze
+                title: "ANALYZE",
+                desc: "Estrai insight dai dati o trova informazioni specifiche in più file.",
+                example: "\"Analizza questo foglio Excel e dimmi qual è il brand con più resi questo mese.\"",
+                color: "#ef4444",
+                icon: "fa-chart-pie"
+            }
         };
 
         // --- CLASSI ---
 
-        // 1. PLAYER (Zally)
+        // 1. PLAYER (Zally - INGRANDITO x3)
         const player = {
-            x: canvas.width / 2 - 30,
-            y: canvas.height - 150,
-            w: 70, h: 70, // Zally un po' più grande
+            x: canvas.width / 2 - 80, // Centrato considerando width
+            y: canvas.height - 200,
+            w: 160, // TRIPLA GRANDEZZA (era ~50-60)
+            h: 160,
+            speed: 8,
             hp: 100,
             weaponLevel: 1, 
             lastShotTime: 0,
             
             update: function() {
-                // Movimento 4 Direzioni
                 if (keys.ArrowLeft) this.x -= SETTINGS.playerSpeed;
                 if (keys.ArrowRight) this.x += SETTINGS.playerSpeed;
                 if (keys.ArrowUp) this.y -= SETTINGS.playerSpeed;
                 if (keys.ArrowDown) this.y += SETTINGS.playerSpeed;
 
-                // Limiti schermo (Box)
-                if(this.x < 0) this.x = 0;
-                if(this.x + this.w > canvas.width) this.x = canvas.width - this.w;
+                // Limiti
+                if(this.x < -50) this.x = -50;
+                if(this.x + this.w > canvas.width + 50) this.x = canvas.width - this.w + 50;
                 if(this.y < 0) this.y = 0;
                 if(this.y + this.h > canvas.height) this.y = canvas.height - this.h;
 
-                // Shooting (Auto-fire se SPACE è premuto)
+                // Shooting
                 if (keys[' ']) {
-                    const fireRate = this.weaponLevel === 3 ? 5 : SETTINGS.fireRate; // Arma 3 spara velocissimo
+                    const fireRate = this.weaponLevel === 3 ? 5 : SETTINGS.fireRate;
                     if (frames - this.lastShotTime > fireRate) {
                         shoot();
                         this.lastShotTime = frames;
@@ -232,30 +353,26 @@
                     ctx.drawImage(zallyImg, this.x, this.y, this.w, this.h);
                 } else {
                     ctx.fillStyle = '#6366f1';
-                    ctx.beginPath(); // Astronave triangolo fallback
-                    ctx.moveTo(this.x + this.w/2, this.y);
-                    ctx.lineTo(this.x + this.w, this.y + this.h);
-                    ctx.lineTo(this.x, this.y + this.h);
-                    ctx.fill();
+                    ctx.fillRect(this.x, this.y, this.w, this.h);
                 }
             }
         };
 
         function shoot() {
-            // Offset per far uscire il colpo dal centro/alto di Zally
+            // Offset aggiustati per Zally gigante
             const centerX = player.x + player.w/2;
-            const topY = player.y;
+            const topY = player.y + 20; // Un po' sotto la cima
 
             if(player.weaponLevel === 1) {
                 bullets.push(new Bullet(centerX - 2, topY, 1));
-            } else if (player.weaponLevel === 2) { // Spread (Summarize)
+            } else if (player.weaponLevel === 2) { // Spread
                 bullets.push(new Bullet(centerX - 2, topY, 2));
-                bullets.push(new Bullet(centerX - 10, topY + 10, 2, -2)); // Sinistra
-                bullets.push(new Bullet(centerX + 6, topY + 10, 2, 2));  // Destra
-            } else if (player.weaponLevel === 3) { // Rapid (Creative)
+                bullets.push(new Bullet(centerX - 20, topY + 20, 2, -3));
+                bullets.push(new Bullet(centerX + 16, topY + 20, 2, 3));
+            } else if (player.weaponLevel === 3) { // Rapid
                 bullets.push(new Bullet(centerX - 2, topY, 3));
-            } else if (player.weaponLevel === 4) { // Laser (Analyze)
-                bullets.push(new Bullet(centerX - 5, topY, 4));
+            } else if (player.weaponLevel === 4) { // Laser
+                bullets.push(new Bullet(centerX - 8, topY - 20, 4));
             }
         }
 
@@ -264,23 +381,23 @@
             constructor(x, y, type, vx = 0) {
                 this.x = x; this.y = y; 
                 this.type = type;
-                this.vx = vx; // Velocità orizzontale per spread
+                this.vx = vx;
                 this.markedForDeletion = false;
 
                 if (type === 1) { // Basic
-                    this.w = 4; this.h = 15; this.speed = 10; this.color = '#ffffff'; 
+                    this.w = 6; this.h = 20; this.speed = 12; this.color = '#ffffff'; 
                 } else if (type === 2) { // Summarize
-                    this.w = 8; this.h = 12; this.speed = 8; this.color = '#3b82f6'; 
+                    this.w = 12; this.h = 18; this.speed = 10; this.color = '#3b82f6'; 
                 } else if (type === 3) { // Creative
-                    this.w = 4; this.h = 20; this.speed = 20; this.color = '#a855f7'; 
+                    this.w = 6; this.h = 25; this.speed = 22; this.color = '#a855f7'; 
                 } else if (type === 4) { // Analyze
-                    this.w = 10; this.h = 50; this.speed = 25; this.color = '#ef4444'; 
+                    this.w = 16; this.h = 60; this.speed = 28; this.color = '#ef4444'; 
                 }
             }
             update() {
                 this.y -= this.speed;
                 this.x += this.vx;
-                if (this.y < -50) this.markedForDeletion = true;
+                if (this.y < -100) this.markedForDeletion = true;
             }
             draw() {
                 ctx.fillStyle = this.color;
@@ -292,9 +409,9 @@
         // 3. ENEMIES
         class Enemy {
             constructor() {
-                this.w = 45; this.h = 45;
+                this.w = 50; this.h = 50;
                 this.x = Math.random() * (canvas.width - this.w);
-                this.y = -60; // Spawn sopra lo schermo
+                this.y = -60;
                 this.speed = Math.random() * 2 + 2 + (score/1000);
                 this.markedForDeletion = false;
                 this.type = Math.random();
@@ -309,13 +426,11 @@
                 }
             }
             draw() {
-                if (this.type < 0.33) ctx.fillStyle = '#94a3b8'; // Grigio
-                else if (this.type < 0.66) ctx.fillStyle = '#fbbf24'; // Giallo
-                else ctx.fillStyle = '#ef4444'; // Rosso
+                if (this.type < 0.33) ctx.fillStyle = '#94a3b8'; 
+                else if (this.type < 0.66) ctx.fillStyle = '#fbbf24'; 
+                else ctx.fillStyle = '#ef4444'; 
                 
                 ctx.fillRect(this.x, this.y, this.w, this.h);
-                
-                // Dettaglio visivo
                 ctx.fillStyle = 'rgba(0,0,0,0.2)';
                 ctx.fillRect(this.x + 5, this.y + 10, this.w - 10, 5);
                 ctx.fillRect(this.x + 5, this.y + 25, this.w - 10, 5);
@@ -323,35 +438,45 @@
         }
         let enemies = [];
 
-        // 4. POWER-UPS
+        // 4. POWER-UPS (INGRANDITI x3)
         class PowerUp {
             constructor(x, y) {
-                this.x = x; this.y = y; this.w = 35; this.h = 35;
-                this.speed = 3;
+                this.x = x; this.y = y; 
+                this.w = 90; // TRIPLA GRANDEZZA (era 30)
+                this.h = 90;
+                this.speed = 2; // Più lenti perché sono importanti
                 this.markedForDeletion = false;
                 
                 const rand = Math.random();
-                if (rand < 0.33) { this.type = 2; this.color = '#3b82f6'; this.label="SUM"; }
-                else if (rand < 0.66) { this.type = 3; this.color = '#a855f7'; this.label="CRE"; }
-                else { this.type = 4; this.color = '#ef4444'; this.label="ANA"; }
+                if (rand < 0.33) { this.type = 2; this.color = '#3b82f6'; this.label="SUM"; this.icon="fa-compress-alt"; }
+                else if (rand < 0.66) { this.type = 3; this.color = '#a855f7'; this.label="CRE"; this.icon="fa-pen-fancy"; }
+                else { this.type = 4; this.color = '#ef4444'; this.label="ANA"; this.icon="fa-chart-pie"; }
             }
             update() {
                 this.y += this.speed;
                 if(this.y > canvas.height) this.markedForDeletion = true;
             }
             draw() {
+                // Cerchio esterno
                 ctx.fillStyle = this.color;
                 ctx.beginPath();
                 ctx.arc(this.x + this.w/2, this.y + this.h/2, this.w/2, 0, Math.PI*2);
                 ctx.fill();
-                ctx.lineWidth = 2;
+                
+                // Bordo pulsante
+                ctx.lineWidth = 4;
                 ctx.strokeStyle = 'white';
                 ctx.stroke();
                 
+                // Testo Grande
                 ctx.fillStyle = 'white';
-                ctx.font = '10px Arial';
+                ctx.font = 'bold 20px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText(this.label, this.x + this.w/2, this.y + this.h/2 + 4);
+                ctx.fillText(this.label, this.x + this.w/2, this.y + this.h/2 + 8);
+                
+                // "Glow"
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = this.color;
             }
         }
         let powerups = [];
@@ -390,39 +515,92 @@
         }
 
         // --- INPUT SYSTEM ---
-        const keys = { 
-            ArrowLeft: false, 
-            ArrowRight: false, 
-            ArrowUp: false, 
-            ArrowDown: false, 
-            ' ': false 
-        };
-
+        const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false, ' ': false };
         window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
         window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
 
-        // --- TOUCH CONTROLS ---
-        let touchActive = false;
-        canvas.addEventListener('touchstart', e => { touchActive = true; keys[' '] = true; }); // Auto-fire on touch
-        canvas.addEventListener('touchend', e => { touchActive = false; keys[' '] = false; });
+        // Touch
         canvas.addEventListener('touchmove', e => {
-            e.preventDefault(); // No scroll
+            e.preventDefault();
+            if(isPaused) return;
             const touch = e.touches[0];
-            // Zally va dove c'è il dito
             player.x = touch.clientX - player.w/2;
             player.y = touch.clientY - player.h/2;
         });
+        canvas.addEventListener('touchstart', e => {
+            if(isPaused) return;
+            keys[' '] = true;
+        });
+        canvas.addEventListener('touchend', e => { keys[' '] = false; });
+
+
+        // --- LOGICA PAUSA & SCHEDE ---
+        function showInfoCard(type) {
+            isPaused = true;
+            const info = POWERUP_INFO[type];
+            const card = document.getElementById('infoCard');
+            
+            // Popola contenuti
+            document.getElementById('cardHeader').style.backgroundColor = info.color;
+            document.getElementById('cardBtn').style.backgroundColor = info.color;
+            document.getElementById('cardTitle').innerText = info.title;
+            document.getElementById('cardDesc').innerText = info.desc;
+            document.getElementById('cardExample').innerText = info.example;
+            
+            // Icona FontAwesome
+            const iconEl = document.getElementById('cardIconClass');
+            iconEl.className = `fas ${info.icon}`;
+
+            // Mostra
+            card.classList.remove('hidden');
+            setTimeout(() => card.classList.add('active'), 10); // Animazione
+        }
+
+        function resumeGame() {
+            const card = document.getElementById('infoCard');
+            card.classList.remove('active');
+            setTimeout(() => {
+                card.classList.add('hidden');
+                isPaused = false;
+                // Reset keys per evitare spari accidentali immediati
+                keys[' '] = false;
+                // Riavvia loop se necessario (ma requestAnimationFrame continua a girare, solo update bloccato)
+            }, 300);
+        }
+        // Esponi a window per il button onclick
+        window.resumeGame = resumeGame;
+
 
         // --- GAME LOOP ---
         function gameLoop() {
             if(!gameRunning) return;
+
+            // Sfondo sempre attivo
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawStars();
+
+            // Se in pausa, disegna tutto statico ma non aggiorna posizioni
+            if (isPaused) {
+                player.draw();
+                bullets.forEach(b => b.draw());
+                enemies.forEach(e => e.draw());
+                powerups.forEach(p => p.draw());
+                particles.forEach(p => p.draw());
+                
+                // Overlay scuro
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(0,0,canvas.width, canvas.height);
+                
+                requestAnimationFrame(gameLoop);
+                return; 
+            }
+
+            // --- UPDATE LOGIC (Solo se non in pausa) ---
 
             player.update();
             player.draw();
 
-            // Enemies Spawn Logic
+            // Spawn Enemies
             if(frames % SETTINGS.enemySpawnRate === 0) enemies.push(new Enemy());
 
             // Bullets
@@ -446,21 +624,25 @@
                         e.markedForDeletion = true;
                         b.markedForDeletion = true; 
 
-                        // Drop Chance (20% ora, per testare armi)
-                        if(Math.random() < 0.2) { 
+                        // Drop Chance (aumentata al 30% per demo)
+                        if(Math.random() < 0.3) { 
                             powerups.push(new PowerUp(e.x, e.y));
                         }
                     }
                 });
 
-                // Collision Player-Enemy (Crash)
+                // Collision Player-Enemy
+                // Aggiustiamo hitbox per Zally grande (più piccolo dell'immagine)
+                const hitboxPadding = 40; 
                 if(!e.markedForDeletion &&
-                   player.x < e.x + e.w - 10 && player.x + player.w > e.x + 10 &&
-                   player.y < e.y + e.h - 10 && player.y + player.h > e.y + 10) {
+                   player.x + hitboxPadding < e.x + e.w && 
+                   player.x + player.w - hitboxPadding > e.x &&
+                   player.y + hitboxPadding < e.y + e.h && 
+                   player.y + player.h - hitboxPadding > e.y) {
                     
                     createExplosion(player.x + player.w/2, player.y + player.h/2, '#ef4444');
                     player.hp -= 20;
-                    player.weaponLevel = 1; // Reset arma
+                    player.weaponLevel = 1; 
                     updateWeaponName();
                     e.markedForDeletion = true;
                     if(player.hp <= 0) gameOver();
@@ -473,13 +655,19 @@
             powerups.forEach((p, i) => {
                 p.update(); p.draw();
                 
+                // Collision Player-Powerup
+                // Hitbox generosa
                 if(player.x < p.x + p.w && player.x + player.w > p.x &&
                    player.y < p.y + p.h && player.y + player.h > p.y) {
+                    
                     player.weaponLevel = p.type;
                     score += 50;
-                    createExplosion(p.x, p.y, p.color); // Effetto raccolta
+                    createExplosion(p.x + p.w/2, p.y + p.h/2, p.color);
                     updateWeaponName();
                     p.markedForDeletion = true;
+                    
+                    // TRIGGER PAUSA & SCHEDA
+                    showInfoCard(p.type);
                 }
 
                 if(p.markedForDeletion) powerups.splice(i, 1);
@@ -505,9 +693,9 @@
         function updateWeaponName() {
             const el = document.getElementById('weaponName');
             if(player.weaponLevel === 1) { el.innerText = "BASIC PROMPT"; el.style.color = "white"; }
-            else if(player.weaponLevel === 2) { el.innerText = "SUMMARIZE (SPREAD)"; el.style.color = "#3b82f6"; }
-            else if(player.weaponLevel === 3) { el.innerText = "CREATIVE (RAPID)"; el.style.color = "#a855f7"; }
-            else if(player.weaponLevel === 4) { el.innerText = "ANALYZE (LASER)"; el.style.color = "#ef4444"; }
+            else if(player.weaponLevel === 2) { el.innerText = "SUMMARIZE"; el.style.color = "#3b82f6"; }
+            else if(player.weaponLevel === 3) { el.innerText = "HELP ME WRITE"; el.style.color = "#a855f7"; }
+            else if(player.weaponLevel === 4) { el.innerText = "ANALYZE"; el.style.color = "#ef4444"; }
         }
 
         function startGame() {
@@ -516,11 +704,16 @@
             document.getElementById('hud').classList.remove('hidden');
             
             score = 0; frames = 0;
-            player.hp = 100; player.weaponLevel = 1; player.x = canvas.width/2; player.y = canvas.height - 150;
+            player.hp = 100; player.weaponLevel = 1; 
+            // Reset Posizione
+            player.x = canvas.width/2 - player.w/2; 
+            player.y = canvas.height - 200;
+            
             bullets = []; enemies = []; particles = []; powerups = [];
             updateWeaponName();
             initStars();
             gameRunning = true;
+            isPaused = false;
             gameLoop();
         }
 
