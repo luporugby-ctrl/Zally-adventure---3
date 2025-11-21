@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Galaxy Defender</title>
+    <title>Gemini Galaxy Defender v2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -104,15 +104,24 @@
         
         .btn-start:hover { transform: scale(1.1); }
 
-        .powerup-info {
-            font-size: 10px;
+        .controls-hint {
+            margin-top: 30px;
+            font-size: 12px;
             color: #94a3b8;
-            margin-top: 20px;
-            line-height: 1.6;
-            text-align: left;
+            line-height: 2;
+            border-top: 1px solid #334155;
+            padding-top: 15px;
         }
-        .powerup-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
-        .icon-box { width: 20px; height: 20px; border: 2px solid white; display: inline-block; }
+        
+        .key-badge {
+            display: inline-block;
+            background: #334155;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border-bottom: 2px solid #1e293b;
+            color: #fff;
+            margin: 0 5px;
+        }
 
     </style>
 </head>
@@ -128,7 +137,7 @@
                 <div style="color: #f87171;">SHIELD: <span id="hpEl">100</span>%</div>
             </div>
             <div class="weapon-display">
-                CURRENT MODE:<br>
+                WEAPON SYSTEM:<br>
                 <span id="weaponName" style="font-size: 18px; color: white;">BASIC PROMPT</span>
             </div>
         </div>
@@ -137,15 +146,10 @@
         <div id="startScreen" class="menu-screen">
             <div style="font-size: 40px; margin-bottom: 10px;">🚀✨</div>
             <h1>GEMINI<br><span>GALAXY DEFENDER</span></h1>
-            <p style="font-size: 10px; color: #cbd5e1; line-height: 1.6;">
-                TASK MANUALI IN ARRIVO!<br>
-                USA I POTERI DI GEMINI PER PULIRE LA GALASSIA.
-            </p>
             
-            <div class="powerup-info">
-                <div class="powerup-row"><div class="icon-box" style="background:#3b82f6"></div> = SUMMARIZE (Spread Shot)</div>
-                <div class="powerup-row"><div class="icon-box" style="background:#a855f7"></div> = CREATIVE (Rapid Fire)</div>
-                <div class="powerup-row"><div class="icon-box" style="background:#ef4444"></div> = ANALYZE (Laser Beam)</div>
+            <div class="controls-hint">
+                <p>PILOTA: <span class="key-badge">ARROWS</span></p>
+                <p>FUOCO: <span class="key-badge">SPACEBAR</span> (Tieni premuto)</p>
             </div>
 
             <button class="btn-start" onclick="startGame()">LAUNCH MISSION</button>
@@ -162,7 +166,6 @@
 
     <!-- ASSETS -->
     <div style="display:none;">
-        <!-- Riferimento all'immagine PNG -->
         <img id="img-zally" src="zally-space.png" onerror="this.src='https://via.placeholder.com/64/6366f1/ffffff?text=Zally'">
     </div>
 
@@ -183,36 +186,53 @@
         window.addEventListener('resize', resize);
         resize();
 
+        // --- CONFIG ---
+        const SETTINGS = {
+            playerSpeed: 8,
+            fireRate: 15, // Più basso = più veloce (frame tra un colpo e l'altro)
+            enemySpawnRate: 50 // Più basso = più nemici
+        };
+
         // --- CLASSI ---
 
         // 1. PLAYER (Zally)
         const player = {
             x: canvas.width / 2 - 30,
-            y: canvas.height - 100,
-            w: 60, h: 60,
-            speed: 8,
+            y: canvas.height - 150,
+            w: 70, h: 70, // Zally un po' più grande
             hp: 100,
-            weaponLevel: 1, // 1: Basic, 2: Summarize, 3: Creative, 4: Analyze
-            weaponTimer: 0, 
+            weaponLevel: 1, 
+            lastShotTime: 0,
             
             update: function() {
-                // Movimento solo orizzontale
-                if (keys.ArrowLeft) this.x -= this.speed;
-                if (keys.ArrowRight) this.x += this.speed;
+                // Movimento 4 Direzioni
+                if (keys.ArrowLeft) this.x -= SETTINGS.playerSpeed;
+                if (keys.ArrowRight) this.x += SETTINGS.playerSpeed;
+                if (keys.ArrowUp) this.y -= SETTINGS.playerSpeed;
+                if (keys.ArrowDown) this.y += SETTINGS.playerSpeed;
 
-                // Limiti schermo
+                // Limiti schermo (Box)
                 if(this.x < 0) this.x = 0;
                 if(this.x + this.w > canvas.width) this.x = canvas.width - this.w;
+                if(this.y < 0) this.y = 0;
+                if(this.y + this.h > canvas.height) this.y = canvas.height - this.h;
+
+                // Shooting (Auto-fire se SPACE è premuto)
+                if (keys[' ']) {
+                    const fireRate = this.weaponLevel === 3 ? 5 : SETTINGS.fireRate; // Arma 3 spara velocissimo
+                    if (frames - this.lastShotTime > fireRate) {
+                        shoot();
+                        this.lastShotTime = frames;
+                    }
+                }
             },
 
             draw: function() {
                 if (zallyImg.complete && zallyImg.naturalWidth !== 0) {
-                    // Disegna l'immagine caricata
                     ctx.drawImage(zallyImg, this.x, this.y, this.w, this.h);
                 } else {
-                    // Fallback: Astronave stilizzata
                     ctx.fillStyle = '#6366f1';
-                    ctx.beginPath();
+                    ctx.beginPath(); // Astronave triangolo fallback
                     ctx.moveTo(this.x + this.w/2, this.y);
                     ctx.lineTo(this.x + this.w, this.y + this.h);
                     ctx.lineTo(this.x, this.y + this.h);
@@ -221,28 +241,46 @@
             }
         };
 
+        function shoot() {
+            // Offset per far uscire il colpo dal centro/alto di Zally
+            const centerX = player.x + player.w/2;
+            const topY = player.y;
+
+            if(player.weaponLevel === 1) {
+                bullets.push(new Bullet(centerX - 2, topY, 1));
+            } else if (player.weaponLevel === 2) { // Spread (Summarize)
+                bullets.push(new Bullet(centerX - 2, topY, 2));
+                bullets.push(new Bullet(centerX - 10, topY + 10, 2, -2)); // Sinistra
+                bullets.push(new Bullet(centerX + 6, topY + 10, 2, 2));  // Destra
+            } else if (player.weaponLevel === 3) { // Rapid (Creative)
+                bullets.push(new Bullet(centerX - 2, topY, 3));
+            } else if (player.weaponLevel === 4) { // Laser (Analyze)
+                bullets.push(new Bullet(centerX - 5, topY, 4));
+            }
+        }
+
         // 2. BULLETS
         class Bullet {
-            constructor(x, y, type) {
+            constructor(x, y, type, vx = 0) {
                 this.x = x; this.y = y; 
                 this.type = type;
+                this.vx = vx; // Velocità orizzontale per spread
                 this.markedForDeletion = false;
 
-                // Configurazioni armi
                 if (type === 1) { // Basic
-                    this.w = 4; this.h = 15; this.speed = 10; this.color = '#ffffff'; this.vx = 0;
-                } else if (type === 2) { // Summarize (Spread)
-                    this.w = 8; this.h = 12; this.speed = 8; this.color = '#3b82f6'; this.vx = Math.random() * 2 - 1; // Leggera dispersione
-                } else if (type === 3) { // Creative (Rapid)
-                    this.w = 3; this.h = 20; this.speed = 18; this.color = '#a855f7'; this.vx = 0;
-                } else if (type === 4) { // Analyze (Laser)
-                    this.w = 10; this.h = 40; this.speed = 25; this.color = '#ef4444'; this.vx = 0;
+                    this.w = 4; this.h = 15; this.speed = 10; this.color = '#ffffff'; 
+                } else if (type === 2) { // Summarize
+                    this.w = 8; this.h = 12; this.speed = 8; this.color = '#3b82f6'; 
+                } else if (type === 3) { // Creative
+                    this.w = 4; this.h = 20; this.speed = 20; this.color = '#a855f7'; 
+                } else if (type === 4) { // Analyze
+                    this.w = 10; this.h = 50; this.speed = 25; this.color = '#ef4444'; 
                 }
             }
             update() {
                 this.y -= this.speed;
                 this.x += this.vx;
-                if (this.y < 0) this.markedForDeletion = true;
+                if (this.y < -50) this.markedForDeletion = true;
             }
             draw() {
                 ctx.fillStyle = this.color;
@@ -251,61 +289,51 @@
         }
         let bullets = [];
 
-        // 3. ENEMIES (Manual Tasks)
+        // 3. ENEMIES
         class Enemy {
             constructor() {
-                this.w = 40; this.h = 40;
+                this.w = 45; this.h = 45;
                 this.x = Math.random() * (canvas.width - this.w);
-                this.y = -50;
-                this.speed = Math.random() * 2 + 1 + (score/1000);
+                this.y = -60; // Spawn sopra lo schermo
+                this.speed = Math.random() * 2 + 2 + (score/1000);
                 this.markedForDeletion = false;
-                this.type = Math.random(); // Per colore
-                
-                // Movimento oscillatorio
-                this.angle = 0;
-                this.angleSpeed = Math.random() * 0.05;
+                this.type = Math.random();
             }
             update() {
                 this.y += this.speed;
-                this.x += Math.sin(this.angle) * 1; 
-                this.angle += this.angleSpeed;
-
                 if (this.y > canvas.height) {
                     this.markedForDeletion = true;
-                    // Penalità se passano
-                    player.hp -= 5; 
+                    player.hp -= 10; 
                     updateHUD();
                     if(player.hp <= 0) gameOver();
                 }
             }
             draw() {
-                // Disegna nemici come "Documenti" o "Bug"
-                if (this.type < 0.33) ctx.fillStyle = '#94a3b8'; // Doc grigio (Noioso)
-                else if (this.type < 0.66) ctx.fillStyle = '#fbbf24'; // Folder Giallo (Disordine)
-                else ctx.fillStyle = '#ef4444'; // Bug Rosso (Errore)
+                if (this.type < 0.33) ctx.fillStyle = '#94a3b8'; // Grigio
+                else if (this.type < 0.66) ctx.fillStyle = '#fbbf24'; // Giallo
+                else ctx.fillStyle = '#ef4444'; // Rosso
                 
                 ctx.fillRect(this.x, this.y, this.w, this.h);
                 
-                // Dettaglio "foglio"
-                ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                ctx.fillRect(this.x + 5, this.y + 10, this.w - 10, 2);
-                ctx.fillRect(this.x + 5, this.y + 20, this.w - 10, 2);
-                ctx.fillRect(this.x + 5, this.y + 30, this.w - 20, 2);
+                // Dettaglio visivo
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(this.x + 5, this.y + 10, this.w - 10, 5);
+                ctx.fillRect(this.x + 5, this.y + 25, this.w - 10, 5);
             }
         }
         let enemies = [];
 
-        // 4. POWER-UPS (Gemini Features)
+        // 4. POWER-UPS
         class PowerUp {
             constructor(x, y) {
-                this.x = x; this.y = y; this.w = 30; this.h = 30;
+                this.x = x; this.y = y; this.w = 35; this.h = 35;
                 this.speed = 3;
                 this.markedForDeletion = false;
                 
                 const rand = Math.random();
-                if (rand < 0.33) { this.type = 2; this.color = '#3b82f6'; } // Summarize
-                else if (rand < 0.66) { this.type = 3; this.color = '#a855f7'; } // Creative
-                else { this.type = 4; this.color = '#ef4444'; } // Analyze
+                if (rand < 0.33) { this.type = 2; this.color = '#3b82f6'; this.label="SUM"; }
+                else if (rand < 0.66) { this.type = 3; this.color = '#a855f7'; this.label="CRE"; }
+                else { this.type = 4; this.color = '#ef4444'; this.label="ANA"; }
             }
             update() {
                 this.y += this.speed;
@@ -314,14 +342,16 @@
             draw() {
                 ctx.fillStyle = this.color;
                 ctx.beginPath();
-                ctx.arc(this.x + 15, this.y + 15, 15, 0, Math.PI*2);
+                ctx.arc(this.x + this.w/2, this.y + this.h/2, this.w/2, 0, Math.PI*2);
                 ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'white';
+                ctx.stroke();
                 
                 ctx.fillStyle = 'white';
                 ctx.font = '10px Arial';
                 ctx.textAlign = 'center';
-                const label = this.type === 2 ? 'SUM' : (this.type === 3 ? 'CRE' : 'ANA');
-                ctx.fillText(label, this.x + 15, this.y + 20);
+                ctx.fillText(this.label, this.x + this.w/2, this.y + this.h/2 + 4);
             }
         }
         let powerups = [];
@@ -329,11 +359,13 @@
         // 5. PARTICLES
         class Particle {
             constructor(x, y, color) {
-                this.x = x; this.y = y; this.size = Math.random() * 3 + 1;
-                this.speedX = Math.random() * 6 - 3; this.speedY = Math.random() * 6 - 3;
+                this.x = x; this.y = y; 
+                this.size = Math.random() * 3 + 2;
+                this.speedX = Math.random() * 6 - 3; 
+                this.speedY = Math.random() * 6 - 3;
                 this.color = color; this.life = 100;
             }
-            update() { this.x += this.speedX; this.y += this.speedY; this.life -= 4; }
+            update() { this.x += this.speedX; this.y += this.speedY; this.life -= 3; }
             draw() {
                 ctx.globalAlpha = this.life / 100; ctx.fillStyle = this.color;
                 ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
@@ -342,11 +374,11 @@
         }
         let particles = [];
 
-        // 6. STARS (Background)
+        // 6. STARS
         let stars = [];
         function initStars() {
             stars = [];
-            for(let i=0; i<100; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, speed:Math.random()*2+0.5});
+            for(let i=0; i<80; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, speed:Math.random()*3+1});
         }
         function drawStars() {
             ctx.fillStyle = 'white';
@@ -357,37 +389,29 @@
             });
         }
 
-        // --- INPUT ---
-        const keys = { ArrowLeft: false, ArrowRight: false, ' ': false };
+        // --- INPUT SYSTEM ---
+        const keys = { 
+            ArrowLeft: false, 
+            ArrowRight: false, 
+            ArrowUp: false, 
+            ArrowDown: false, 
+            ' ': false 
+        };
+
         window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
-        window.addEventListener('keyup', e => { 
-            if(keys.hasOwnProperty(e.key)) keys[e.key] = false; 
-            if(e.key === ' ' && gameRunning) shoot();
-        });
+        window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
 
-        // Touch Controls
+        // --- TOUCH CONTROLS ---
+        let touchActive = false;
+        canvas.addEventListener('touchstart', e => { touchActive = true; keys[' '] = true; }); // Auto-fire on touch
+        canvas.addEventListener('touchend', e => { touchActive = false; keys[' '] = false; });
         canvas.addEventListener('touchmove', e => {
-            e.preventDefault();
-            const touchX = e.touches[0].clientX;
-            player.x = touchX - player.w/2;
+            e.preventDefault(); // No scroll
+            const touch = e.touches[0];
+            // Zally va dove c'è il dito
+            player.x = touch.clientX - player.w/2;
+            player.y = touch.clientY - player.h/2;
         });
-        canvas.addEventListener('touchstart', e => {
-            shoot();
-        });
-
-        function shoot() {
-            if(player.weaponLevel === 1) {
-                bullets.push(new Bullet(player.x + player.w/2 - 2, player.y, 1));
-            } else if (player.weaponLevel === 2) { // Spread
-                bullets.push(new Bullet(player.x, player.y, 2));
-                bullets.push(new Bullet(player.x + player.w/2 - 4, player.y - 10, 2));
-                bullets.push(new Bullet(player.x + player.w, player.y, 2));
-            } else if (player.weaponLevel === 3) { // Rapid (chiamato più spesso nel loop)
-                bullets.push(new Bullet(player.x + player.w/2 - 1.5, player.y, 3));
-            } else if (player.weaponLevel === 4) { // Laser
-                bullets.push(new Bullet(player.x + player.w/2 - 5, player.y, 4));
-            }
-        }
 
         // --- GAME LOOP ---
         function gameLoop() {
@@ -398,23 +422,20 @@
             player.update();
             player.draw();
 
-            // Auto-fire for Level 3 (Rapid)
-            if(player.weaponLevel === 3 && frames % 5 === 0) shoot();
+            // Enemies Spawn Logic
+            if(frames % SETTINGS.enemySpawnRate === 0) enemies.push(new Enemy());
 
-            // Enemies Spawn
-            if(frames % 40 === 0) enemies.push(new Enemy());
-
-            // Bullets Update
+            // Bullets
             bullets.forEach((b, i) => {
                 b.update(); b.draw();
                 if(b.markedForDeletion) bullets.splice(i, 1);
             });
 
-            // Enemies Update & Collision
+            // Enemies
             enemies.forEach((e, eIndex) => {
                 e.update(); e.draw();
 
-                // Hit by Bullet
+                // Collision Bullet-Enemy
                 bullets.forEach((b, bIndex) => {
                     if(!b.markedForDeletion && !e.markedForDeletion &&
                        b.x < e.x + e.w && b.x + b.w > e.x &&
@@ -425,20 +446,21 @@
                         e.markedForDeletion = true;
                         b.markedForDeletion = true; 
 
-                        // Drop PowerUp chance
-                        if(Math.random() < 0.1) { // 10% chance
+                        // Drop Chance (20% ora, per testare armi)
+                        if(Math.random() < 0.2) { 
                             powerups.push(new PowerUp(e.x, e.y));
                         }
                     }
                 });
 
-                // Hit Player
+                // Collision Player-Enemy (Crash)
                 if(!e.markedForDeletion &&
-                   player.x < e.x + e.w && player.x + player.w > e.x &&
-                   player.y < e.y + e.h && player.y + player.h > e.y) {
+                   player.x < e.x + e.w - 10 && player.x + player.w > e.x + 10 &&
+                   player.y < e.y + e.h - 10 && player.y + player.h > e.y + 10) {
+                    
                     createExplosion(player.x + player.w/2, player.y + player.h/2, '#ef4444');
                     player.hp -= 20;
-                    player.weaponLevel = 1; 
+                    player.weaponLevel = 1; // Reset arma
                     updateWeaponName();
                     e.markedForDeletion = true;
                     if(player.hp <= 0) gameOver();
@@ -447,15 +469,15 @@
                 if(e.markedForDeletion) enemies.splice(eIndex, 1);
             });
 
-            // PowerUps Update
+            // PowerUps
             powerups.forEach((p, i) => {
                 p.update(); p.draw();
                 
-                // Collect
                 if(player.x < p.x + p.w && player.x + player.w > p.x &&
                    player.y < p.y + p.h && player.y + player.h > p.y) {
                     player.weaponLevel = p.type;
                     score += 50;
+                    createExplosion(p.x, p.y, p.color); // Effetto raccolta
                     updateWeaponName();
                     p.markedForDeletion = true;
                 }
@@ -494,7 +516,7 @@
             document.getElementById('hud').classList.remove('hidden');
             
             score = 0; frames = 0;
-            player.hp = 100; player.weaponLevel = 1; player.x = canvas.width/2;
+            player.hp = 100; player.weaponLevel = 1; player.x = canvas.width/2; player.y = canvas.height - 150;
             bullets = []; enemies = []; particles = []; powerups = [];
             updateWeaponName();
             initStars();
@@ -508,7 +530,6 @@
             document.getElementById('finalScore').innerText = score;
         }
 
-        // Init Stars for menu bg
         initStars();
         setInterval(() => {
             if(!gameRunning) {
