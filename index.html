@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gmail Inbox Defender</title>
+    <title>Gemini Galaxy Defender</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #202124; /* Gmail Dark Mode BG */
+            background-color: #050510;
             color: white;
             font-family: 'Press Start 2P', cursive;
             overflow: hidden;
@@ -23,8 +23,7 @@
             position: relative;
             width: 100vw;
             height: 100vh;
-            /* Sfondo stile "Matrix/Cyber" per la posta */
-            background: radial-gradient(circle at bottom, #ea4335 0%, #202124 70%); 
+            background: radial-gradient(circle at center, #1e1e2e 0%, #000000 100%);
             overflow: hidden;
         }
 
@@ -40,7 +39,6 @@
             pointer-events: none;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
             padding: 20px;
             box-sizing: border-box;
         }
@@ -49,12 +47,19 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            font-size: 20px;
+            font-size: 16px;
             text-shadow: 2px 2px 0 #000;
+            z-index: 10;
         }
 
-        .score-box { color: #4ade80; } /* Green */
-        .health-box { color: #ea4335; } /* Gmail Red */
+        .weapon-display {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #fbbf24;
+            font-size: 12px;
+            text-align: left;
+        }
 
         /* Schermate */
         .menu-screen {
@@ -63,70 +68,52 @@
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            background: rgba(32, 33, 36, 0.95);
+            background: rgba(15, 23, 42, 0.95);
             padding: 40px;
-            border: 4px solid #ea4335;
+            border: 4px solid #6366f1;
             border-radius: 20px;
-            box-shadow: 0 0 30px rgba(234, 67, 53, 0.5);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
             pointer-events: auto;
             z-index: 100;
-            min-width: 300px;
+            min-width: 320px;
         }
 
         .hidden { display: none !important; }
 
         h1 {
             color: #fff;
-            font-size: 28px;
+            font-size: 24px;
             margin-bottom: 20px;
             line-height: 1.5;
             text-transform: uppercase;
         }
 
-        h1 span { color: #ea4335; } /* Red text */
-
-        p {
-            font-size: 10px;
-            color: #9aa0a6;
-            margin-bottom: 30px;
-            line-height: 1.8;
-            font-family: 'Arial', sans-serif;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
+        h1 span { color: #6366f1; } 
 
         .btn-start {
-            background: linear-gradient(to bottom, #ea4335, #b31412);
+            background: linear-gradient(to bottom, #4f46e5, #3730a3);
             border: 4px solid #fff;
             color: white;
             padding: 15px 30px;
             font-family: 'Press Start 2P', cursive;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             transition: transform 0.1s;
+            margin-top: 20px;
         }
         
-        .btn-start:hover {
-            transform: scale(1.1);
-            background: linear-gradient(to bottom, #ff5a50, #d93025);
-        }
+        .btn-start:hover { transform: scale(1.1); }
 
-        .controls-hint {
-            margin-top: 20px;
+        .powerup-info {
             font-size: 10px;
-            color: #5f6368;
+            color: #94a3b8;
+            margin-top: 20px;
+            line-height: 1.6;
+            text-align: left;
         }
+        .powerup-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        .icon-box { width: 20px; height: 20px; border: 2px solid white; display: inline-block; }
 
-        /* Icone decorative nel menu */
-        .menu-icon {
-            font-size: 40px;
-            margin-bottom: 20px;
-            animation: bounce 2s infinite;
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
     </style>
 </head>
 <body>
@@ -137,58 +124,58 @@
         <!-- HUD -->
         <div class="ui-layer" id="hud">
             <div class="hud-top">
-                <div class="score-box">ARCHIVED: <span id="scoreEl">0</span></div>
-                <div class="health-box">STORAGE: <span id="hpEl">100</span>%</div>
+                <div style="color: #4ade80;">SCORE: <span id="scoreEl">0</span></div>
+                <div style="color: #f87171;">SHIELD: <span id="hpEl">100</span>%</div>
+            </div>
+            <div class="weapon-display">
+                CURRENT MODE:<br>
+                <span id="weaponName" style="font-size: 18px; color: white;">BASIC PROMPT</span>
             </div>
         </div>
 
         <!-- START SCREEN -->
         <div id="startScreen" class="menu-screen">
-            <div class="menu-icon">📧🔥</div>
-            <h1>GMAIL<br><span>INBOX DEFENDER</span></h1>
-            <p>LO SPAM STA ATTACCANDO!<br>DIFENDI LA TUA INBOX E MANTIENI LO SPAZIO LIBERO.</p>
-            <button class="btn-start" onclick="startGame()">LAUNCH GEMINI</button>
-            <div class="controls-hint">
-                <i class="fas fa-arrows-alt"></i> MOVE &nbsp;&nbsp; <i class="fas fa-keyboard"></i> SHOOT
+            <div style="font-size: 40px; margin-bottom: 10px;">🚀✨</div>
+            <h1>GEMINI<br><span>GALAXY DEFENDER</span></h1>
+            <p style="font-size: 10px; color: #cbd5e1; line-height: 1.6;">
+                TASK MANUALI IN ARRIVO!<br>
+                USA I POTERI DI GEMINI PER PULIRE LA GALASSIA.
+            </p>
+            
+            <div class="powerup-info">
+                <div class="powerup-row"><div class="icon-box" style="background:#3b82f6"></div> = SUMMARIZE (Spread Shot)</div>
+                <div class="powerup-row"><div class="icon-box" style="background:#a855f7"></div> = CREATIVE (Rapid Fire)</div>
+                <div class="powerup-row"><div class="icon-box" style="background:#ef4444"></div> = ANALYZE (Laser Beam)</div>
             </div>
+
+            <button class="btn-start" onclick="startGame()">LAUNCH MISSION</button>
         </div>
 
         <!-- GAME OVER SCREEN -->
         <div id="gameOverScreen" class="menu-screen hidden">
-            <h1 style="color: #ea4335;">QUOTA EXCEEDED</h1>
-            <p>LA TUA CASELLA È PIENA.<br>IMPOSSIBILE RICEVERE NUOVE MAIL.</p>
-            <div style="margin-bottom: 20px; font-size: 18px;">MAILS ARCHIVED: <span id="finalScore">0</span></div>
-            <button class="btn-start" onclick="startGame()">CLEAN UP</button>
+            <h1 style="color: #ef4444;">MISSION FAILED</h1>
+            <p style="font-size: 12px; margin-bottom: 20px;">SYSTEM OVERLOADED.</p>
+            <div style="margin-bottom: 20px; font-size: 18px;">FINAL SCORE: <span id="finalScore">0</span></div>
+            <button class="btn-start" onclick="startGame()">RETRY</button>
         </div>
     </div>
 
-    <!-- ASSETS PRELOADER -->
+    <!-- ASSETS -->
     <div style="display:none;">
-        <!-- Usiamo lo stesso Zally Spaziale perché "vola" nel cyberspazio -->
-        <img id="img-zally" src="zally-space.png" onerror="this.src='https://via.placeholder.com/64/4285f4/ffffff?text=G'">
-        
-        <!-- Nemici Gmail: Spam & Unread -->
-        <!-- Spam Icon (Bomb/Warning style) -->
-        <img id="img-enemy1" src="https://cdn-icons-png.flaticon.com/512/564/564619.png" width="64"> 
-        <!-- Stack of Unread Mails -->
-        <img id="img-enemy2" src="https://cdn-icons-png.flaticon.com/512/281/281769.png" width="64"> 
+        <!-- Riferimento all'immagine PNG -->
+        <img id="img-zally" src="zally-space.png" onerror="this.src='https://via.placeholder.com/64/6366f1/ffffff?text=Zally'">
     </div>
 
     <script>
-        // --- SETUP CANVAS ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-
-        // Assets
         const zallyImg = document.getElementById('img-zally');
-        const enemyImg1 = document.getElementById('img-enemy1'); // Spam
-        const enemyImg2 = document.getElementById('img-enemy2'); // Unread
 
-        // Game State
         let gameRunning = false;
         let score = 0;
         let frames = 0;
         
+        // Canvas Size
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -196,235 +183,309 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // --- OGGETTI DI GIOCO ---
+        // --- CLASSI ---
 
-        // 1. IL GIOCATORE (Zally)
+        // 1. PLAYER (Zally)
         const player = {
-            x: 100, y: canvas.height / 2, w: 70, h: 70, speed: 8, hp: 100, dx: 0, dy: 0,
+            x: canvas.width / 2 - 30,
+            y: canvas.height - 100,
+            w: 60, h: 60,
+            speed: 8,
+            hp: 100,
+            weaponLevel: 1, // 1: Basic, 2: Summarize, 3: Creative, 4: Analyze
+            weaponTimer: 0, 
             
             update: function() {
-                this.x += this.dx;
-                this.y += this.dy;
+                // Movimento solo orizzontale
+                if (keys.ArrowLeft) this.x -= this.speed;
+                if (keys.ArrowRight) this.x += this.speed;
+
+                // Limiti schermo
                 if(this.x < 0) this.x = 0;
                 if(this.x + this.w > canvas.width) this.x = canvas.width - this.w;
-                if(this.y < 0) this.y = 0;
-                if(this.y + this.h > canvas.height) this.y = canvas.height - this.h;
             },
 
             draw: function() {
                 if (zallyImg.complete && zallyImg.naturalWidth !== 0) {
+                    // Disegna l'immagine caricata
                     ctx.drawImage(zallyImg, this.x, this.y, this.w, this.h);
                 } else {
-                    // Fallback: Blue Gemini Box
-                    ctx.fillStyle = '#4285f4';
+                    // Fallback: Astronave stilizzata
+                    ctx.fillStyle = '#6366f1';
                     ctx.beginPath();
-                    ctx.roundRect(this.x, this.y, this.w, this.h, 10);
+                    ctx.moveTo(this.x + this.w/2, this.y);
+                    ctx.lineTo(this.x + this.w, this.y + this.h);
+                    ctx.lineTo(this.x, this.y + this.h);
                     ctx.fill();
-                    ctx.fillStyle = 'white';
-                    ctx.font = '30px Arial';
-                    ctx.fillText('G', this.x + 20, this.y + 45);
                 }
             }
         };
 
-        // 2. I PROIETTILI (Smart Replies)
+        // 2. BULLETS
         class Bullet {
-            constructor(x, y) {
-                this.x = x; this.y = y; this.w = 30; this.h = 8; this.speed = 15; this.markedForDeletion = false;
+            constructor(x, y, type) {
+                this.x = x; this.y = y; 
+                this.type = type;
+                this.markedForDeletion = false;
+
+                // Configurazioni armi
+                if (type === 1) { // Basic
+                    this.w = 4; this.h = 15; this.speed = 10; this.color = '#ffffff'; this.vx = 0;
+                } else if (type === 2) { // Summarize (Spread)
+                    this.w = 8; this.h = 12; this.speed = 8; this.color = '#3b82f6'; this.vx = Math.random() * 2 - 1; // Leggera dispersione
+                } else if (type === 3) { // Creative (Rapid)
+                    this.w = 3; this.h = 20; this.speed = 18; this.color = '#a855f7'; this.vx = 0;
+                } else if (type === 4) { // Analyze (Laser)
+                    this.w = 10; this.h = 40; this.speed = 25; this.color = '#ef4444'; this.vx = 0;
+                }
             }
             update() {
-                this.x += this.speed;
-                if (this.x > canvas.width) this.markedForDeletion = true;
+                this.y -= this.speed;
+                this.x += this.vx;
+                if (this.y < 0) this.markedForDeletion = true;
             }
             draw() {
-                // Laser Blu/Viola (Gemini colors)
-                const grad = ctx.createLinearGradient(this.x, this.y, this.x + this.w, this.y);
-                grad.addColorStop(0, '#4285f4');
-                grad.addColorStop(1, '#d96570');
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.roundRect(this.x, this.y, this.w, this.h, 4);
-                ctx.fill();
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.w, this.h);
             }
         }
         let bullets = [];
 
-        // 3. I NEMICI (Spam & Unread)
+        // 3. ENEMIES (Manual Tasks)
         class Enemy {
             constructor() {
-                this.w = 50; this.h = 50;
-                this.x = canvas.width;
-                this.y = Math.random() * (canvas.height - this.h);
-                this.speed = (Math.random() * 3) + 3 + (score / 100); 
+                this.w = 40; this.h = 40;
+                this.x = Math.random() * (canvas.width - this.w);
+                this.y = -50;
+                this.speed = Math.random() * 2 + 1 + (score/1000);
                 this.markedForDeletion = false;
-                this.type = Math.random() > 0.6 ? 'spam' : 'unread'; // Più unread che spam
+                this.type = Math.random(); // Per colore
                 
+                // Movimento oscillatorio
                 this.angle = 0;
-                this.angleSpeed = 0.05;
+                this.angleSpeed = Math.random() * 0.05;
             }
             update() {
-                this.x -= this.speed;
-                this.y += Math.sin(this.angle) * 1.5; 
+                this.y += this.speed;
+                this.x += Math.sin(this.angle) * 1; 
                 this.angle += this.angleSpeed;
-                if (this.x + this.w < 0) this.markedForDeletion = true;
+
+                if (this.y > canvas.height) {
+                    this.markedForDeletion = true;
+                    // Penalità se passano
+                    player.hp -= 5; 
+                    updateHUD();
+                    if(player.hp <= 0) gameOver();
+                }
             }
             draw() {
-                const img = this.type === 'spam' ? enemyImg1 : enemyImg2;
-                if (img.complete && img.naturalWidth !== 0) {
-                    ctx.drawImage(img, this.x, this.y, this.w, this.h);
-                } else {
-                    // Fallback
-                    ctx.fillStyle = this.type === 'spam' ? '#ea4335' : '#fbbc04'; 
-                    ctx.fillRect(this.x, this.y, this.w, this.h);
-                    ctx.fillStyle = 'black';
-                    ctx.font = '20px Arial';
-                    ctx.fillText(this.type === 'spam' ? '!' : '@', this.x + 15, this.y + 35);
-                }
+                // Disegna nemici come "Documenti" o "Bug"
+                if (this.type < 0.33) ctx.fillStyle = '#94a3b8'; // Doc grigio (Noioso)
+                else if (this.type < 0.66) ctx.fillStyle = '#fbbf24'; // Folder Giallo (Disordine)
+                else ctx.fillStyle = '#ef4444'; // Bug Rosso (Errore)
+                
+                ctx.fillRect(this.x, this.y, this.w, this.h);
+                
+                // Dettaglio "foglio"
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(this.x + 5, this.y + 10, this.w - 10, 2);
+                ctx.fillRect(this.x + 5, this.y + 20, this.w - 10, 2);
+                ctx.fillRect(this.x + 5, this.y + 30, this.w - 20, 2);
             }
         }
         let enemies = [];
 
-        // 4. PARTICELLE (Digital Dust)
+        // 4. POWER-UPS (Gemini Features)
+        class PowerUp {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.w = 30; this.h = 30;
+                this.speed = 3;
+                this.markedForDeletion = false;
+                
+                const rand = Math.random();
+                if (rand < 0.33) { this.type = 2; this.color = '#3b82f6'; } // Summarize
+                else if (rand < 0.66) { this.type = 3; this.color = '#a855f7'; } // Creative
+                else { this.type = 4; this.color = '#ef4444'; } // Analyze
+            }
+            update() {
+                this.y += this.speed;
+                if(this.y > canvas.height) this.markedForDeletion = true;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x + 15, this.y + 15, 15, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                const label = this.type === 2 ? 'SUM' : (this.type === 3 ? 'CRE' : 'ANA');
+                ctx.fillText(label, this.x + 15, this.y + 20);
+            }
+        }
+        let powerups = [];
+
+        // 5. PARTICLES
         class Particle {
             constructor(x, y, color) {
-                this.x = x; this.y = y; this.size = Math.random() * 4 + 2;
+                this.x = x; this.y = y; this.size = Math.random() * 3 + 1;
                 this.speedX = Math.random() * 6 - 3; this.speedY = Math.random() * 6 - 3;
                 this.color = color; this.life = 100;
             }
-            update() {
-                this.x += this.speedX; this.y += this.speedY; this.life -= 3;
-            }
+            update() { this.x += this.speedX; this.y += this.speedY; this.life -= 4; }
             draw() {
-                ctx.globalAlpha = this.life / 100;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.globalAlpha = this.life / 100; ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
                 ctx.globalAlpha = 1.0;
             }
         }
         let particles = [];
 
-        // 5. BACKGROUND (Cyberspace Stripes)
-        let stripes = [];
-        function initStripes() {
-            stripes = [];
-            for(let i=0; i<20; i++) {
-                stripes.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    w: Math.random() * 100 + 50,
-                    h: 2,
-                    speed: Math.random() * 10 + 5,
-                    alpha: Math.random() * 0.3
-                });
-            }
+        // 6. STARS (Background)
+        let stars = [];
+        function initStars() {
+            stars = [];
+            for(let i=0; i<100; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, speed:Math.random()*2+0.5});
         }
-        function drawBackground() {
-            // Gradiente di fondo
-            // Stripes
-            ctx.fillStyle = '#ffffff';
-            stripes.forEach(s => {
-                s.x -= s.speed;
-                if(s.x + s.w < 0) s.x = canvas.width;
-                ctx.globalAlpha = s.alpha;
-                ctx.fillRect(s.x, s.y, s.w, s.h);
+        function drawStars() {
+            ctx.fillStyle = 'white';
+            stars.forEach(s => {
+                s.y += s.speed; 
+                if(s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; }
+                ctx.fillRect(s.x, s.y, 2, 2);
             });
-            ctx.globalAlpha = 1.0;
         }
 
         // --- INPUT ---
-        const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, ' ': false };
-
-        window.addEventListener('keydown', (e) => {
-            if(keys.hasOwnProperty(e.key)) keys[e.key] = true;
-            if (e.key === ' ' && gameRunning) {
-                bullets.push(new Bullet(player.x + player.w, player.y + player.h/2 - 4));
-            }
+        const keys = { ArrowLeft: false, ArrowRight: false, ' ': false };
+        window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+        window.addEventListener('keyup', e => { 
+            if(keys.hasOwnProperty(e.key)) keys[e.key] = false; 
+            if(e.key === ' ' && gameRunning) shoot();
         });
 
-        window.addEventListener('keyup', (e) => {
-            if(keys.hasOwnProperty(e.key)) keys[e.key] = false;
-        });
-        
-        // Touch
-        canvas.addEventListener('touchstart', (e) => {
+        // Touch Controls
+        canvas.addEventListener('touchmove', e => {
             e.preventDefault();
-            bullets.push(new Bullet(player.x + player.w, player.y + player.h/2 - 4));
+            const touchX = e.touches[0].clientX;
+            player.x = touchX - player.w/2;
+        });
+        canvas.addEventListener('touchstart', e => {
+            shoot();
         });
 
-        function handleInput() {
-            if(keys.ArrowUp) player.dy = -player.speed;
-            else if(keys.ArrowDown) player.dy = player.speed;
-            else player.dy = 0;
-            if(keys.ArrowLeft) player.dx = -player.speed;
-            else if(keys.ArrowRight) player.dx = player.speed;
-            else player.dx = 0;
+        function shoot() {
+            if(player.weaponLevel === 1) {
+                bullets.push(new Bullet(player.x + player.w/2 - 2, player.y, 1));
+            } else if (player.weaponLevel === 2) { // Spread
+                bullets.push(new Bullet(player.x, player.y, 2));
+                bullets.push(new Bullet(player.x + player.w/2 - 4, player.y - 10, 2));
+                bullets.push(new Bullet(player.x + player.w, player.y, 2));
+            } else if (player.weaponLevel === 3) { // Rapid (chiamato più spesso nel loop)
+                bullets.push(new Bullet(player.x + player.w/2 - 1.5, player.y, 3));
+            } else if (player.weaponLevel === 4) { // Laser
+                bullets.push(new Bullet(player.x + player.w/2 - 5, player.y, 4));
+            }
         }
 
         // --- GAME LOOP ---
         function gameLoop() {
             if(!gameRunning) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawBackground();
+            drawStars();
 
-            // Player
-            handleInput();
             player.update();
             player.draw();
 
-            // Bullets
+            // Auto-fire for Level 3 (Rapid)
+            if(player.weaponLevel === 3 && frames % 5 === 0) shoot();
+
+            // Enemies Spawn
+            if(frames % 40 === 0) enemies.push(new Enemy());
+
+            // Bullets Update
             bullets.forEach((b, i) => {
-                b.update();
-                b.draw();
-                if (b.markedForDeletion) bullets.splice(i, 1);
+                b.update(); b.draw();
+                if(b.markedForDeletion) bullets.splice(i, 1);
             });
 
-            // Enemies
-            if (frames % 50 === 0) { 
-                if(Math.random() < 0.6 + (score/500)) enemies.push(new Enemy());
-            }
-            
+            // Enemies Update & Collision
             enemies.forEach((e, eIndex) => {
-                e.update();
-                e.draw();
+                e.update(); e.draw();
 
                 // Hit by Bullet
                 bullets.forEach((b, bIndex) => {
-                    if (b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
-                        createExplosion(e.x + e.w/2, e.y + e.h/2, e.type === 'spam' ? '#ea4335' : '#fbbc04');
-                        score += 1;
-                        document.getElementById('scoreEl').innerText = score;
+                    if(!b.markedForDeletion && !e.markedForDeletion &&
+                       b.x < e.x + e.w && b.x + b.w > e.x &&
+                       b.y < e.y + e.h && b.y + b.h > e.y) {
+                        
+                        createExplosion(e.x + e.w/2, e.y + e.h/2, '#ffffff');
+                        score += 10;
                         e.markedForDeletion = true;
-                        b.markedForDeletion = true;
+                        b.markedForDeletion = true; 
+
+                        // Drop PowerUp chance
+                        if(Math.random() < 0.1) { // 10% chance
+                            powerups.push(new PowerUp(e.x, e.y));
+                        }
                     }
                 });
 
                 // Hit Player
-                if (player.x < e.x + e.w && player.x + player.w > e.x && player.y < e.y + e.h && player.y + player.h > e.y) {
-                    createExplosion(player.x + player.w/2, player.y + player.h/2, '#fff');
-                    player.hp -= 20; // 5 colpi e sei morto
-                    document.getElementById('hpEl').innerText = Math.max(0, player.hp);
+                if(!e.markedForDeletion &&
+                   player.x < e.x + e.w && player.x + player.w > e.x &&
+                   player.y < e.y + e.h && player.y + player.h > e.y) {
+                    createExplosion(player.x + player.w/2, player.y + player.h/2, '#ef4444');
+                    player.hp -= 20;
+                    player.weaponLevel = 1; 
+                    updateWeaponName();
                     e.markedForDeletion = true;
-                    if (player.hp <= 0) gameOver();
+                    if(player.hp <= 0) gameOver();
                 }
 
-                if (e.markedForDeletion) enemies.splice(eIndex, 1);
+                if(e.markedForDeletion) enemies.splice(eIndex, 1);
+            });
+
+            // PowerUps Update
+            powerups.forEach((p, i) => {
+                p.update(); p.draw();
+                
+                // Collect
+                if(player.x < p.x + p.w && player.x + player.w > p.x &&
+                   player.y < p.y + p.h && player.y + player.h > p.y) {
+                    player.weaponLevel = p.type;
+                    score += 50;
+                    updateWeaponName();
+                    p.markedForDeletion = true;
+                }
+
+                if(p.markedForDeletion) powerups.splice(i, 1);
             });
 
             // Particles
-            particles.forEach((p, i) => {
-                p.update();
-                p.draw();
-                if (p.life <= 0) particles.splice(i, 1);
-            });
+            particles.forEach((p, i) => { p.update(); p.draw(); if(p.life <= 0) particles.splice(i, 1); });
 
+            updateHUD();
             frames++;
             requestAnimationFrame(gameLoop);
         }
 
         function createExplosion(x, y, color) {
-            for(let i=0; i<12; i++) particles.push(new Particle(x, y, color));
+            for(let i=0; i<10; i++) particles.push(new Particle(x, y, color));
+        }
+
+        function updateHUD() {
+            document.getElementById('scoreEl').innerText = score;
+            document.getElementById('hpEl').innerText = Math.max(0, player.hp);
+        }
+
+        function updateWeaponName() {
+            const el = document.getElementById('weaponName');
+            if(player.weaponLevel === 1) { el.innerText = "BASIC PROMPT"; el.style.color = "white"; }
+            else if(player.weaponLevel === 2) { el.innerText = "SUMMARIZE (SPREAD)"; el.style.color = "#3b82f6"; }
+            else if(player.weaponLevel === 3) { el.innerText = "CREATIVE (RAPID)"; el.style.color = "#a855f7"; }
+            else if(player.weaponLevel === 4) { el.innerText = "ANALYZE (LASER)"; el.style.color = "#ef4444"; }
         }
 
         function startGame() {
@@ -433,13 +494,10 @@
             document.getElementById('hud').classList.remove('hidden');
             
             score = 0; frames = 0;
-            player.hp = 100; player.x = 50; player.y = canvas.height/2;
-            bullets = []; enemies = []; particles = [];
-            
-            document.getElementById('scoreEl').innerText = '0';
-            document.getElementById('hpEl').innerText = '100';
-
-            initStripes();
+            player.hp = 100; player.weaponLevel = 1; player.x = canvas.width/2;
+            bullets = []; enemies = []; particles = []; powerups = [];
+            updateWeaponName();
+            initStars();
             gameRunning = true;
             gameLoop();
         }
@@ -450,12 +508,12 @@
             document.getElementById('finalScore').innerText = score;
         }
 
-        initStripes();
-        // Loop sfondo menu
+        // Init Stars for menu bg
+        initStars();
         setInterval(() => {
             if(!gameRunning) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                drawBackground();
+                ctx.clearRect(0,0,canvas.width, canvas.height);
+                drawStars();
             }
         }, 1000/30);
 
