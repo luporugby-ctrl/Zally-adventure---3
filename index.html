@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Galaxy Defender v3 - Educational</title>
+    <title>Gemini Galaxy Defender v5 - Ultimate Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -20,7 +20,6 @@
             touch-action: none;
         }
 
-        /* Font leggibile per le schede educative */
         .font-readable { font-family: 'Inter', sans-serif; }
 
         #game-container {
@@ -56,6 +55,46 @@
             z-index: 10;
         }
 
+        /* Boss HUD */
+        .boss-hud {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none; /* Hidden initially */
+            text-align: center;
+            width: 300px;
+        }
+
+        .boss-shield-msg {
+            color: #ef4444;
+            font-size: 10px;
+            margin-bottom: 5px;
+            animation: pulse 1s infinite;
+        }
+
+        .gem-tracker {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .gem-slot {
+            width: 30px; height: 30px;
+            border: 2px solid #475569;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: #475569;
+            transition: all 0.3s;
+        }
+        .gem-slot.active {
+            border-color: white;
+            color: white;
+            box-shadow: 0 0 10px currentColor;
+        }
+
         .weapon-display {
             position: absolute;
             bottom: 20px;
@@ -65,13 +104,12 @@
             text-align: left;
         }
 
-        /* Schermate (Menu, GameOver, Info) */
-        .menu-screen {
+        /* Screens */
+        .menu-screen, .card-modal {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            text-align: center;
             background: rgba(15, 23, 42, 0.95);
             padding: 40px;
             border: 4px solid #6366f1;
@@ -79,14 +117,14 @@
             box-shadow: 0 0 50px rgba(99, 102, 241, 0.6);
             pointer-events: auto;
             z-index: 100;
-            min-width: 320px;
+            min-width: 340px;
+            text-align: center;
         }
 
-        /* Scheda Educativa Popup */
+        /* Info Card (In-Game Pause) */
         .info-card {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0.9);
             background: white;
             color: #1e293b;
@@ -95,108 +133,69 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.8);
             pointer-events: auto;
             z-index: 200;
-            width: 90%;
-            max-width: 400px;
+            width: 90%; max-width: 400px;
             text-align: left;
-            overflow: hidden;
             opacity: 0;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.3s ease;
         }
+        .info-card.active { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 
-        .info-card.active {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
+        .card-header { padding: 20px; color: white; display: flex; align-items: center; gap: 15px; }
+        .card-icon { width: 50px; height: 50px; border-radius: 12px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .card-body { padding: 24px; }
+        .card-example { background: #f1f5f9; border-left: 4px solid #94a3b8; padding: 12px; margin: 15px 0; font-size: 14px; color: #475569; font-style: italic; }
+
+        /* Victory Summary Card */
+        .victory-card {
+            background: white;
+            color: #1e293b;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            text-align: left;
+            border: none;
         }
-
-        .card-header {
-            padding: 20px;
-            color: white;
+        .victory-item {
             display: flex;
-            align-items: center;
+            align-items: start;
             gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
         }
-        
-        .card-icon {
-            width: 50px; height: 50px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .card-body {
-            padding: 24px;
-        }
-
-        .card-example {
-            background: #f1f5f9;
-            border-left: 4px solid #94a3b8;
-            padding: 12px;
-            margin: 15px 0;
-            font-size: 14px;
-            color: #475569;
-            font-style: italic;
+        .victory-item:last-child { border-bottom: none; }
+        .victory-icon {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+            flex-shrink: 0;
         }
 
         .hidden { display: none !important; }
 
-        h1 {
-            color: #fff;
-            font-size: 24px;
-            margin-bottom: 20px;
-            line-height: 1.5;
-            text-transform: uppercase;
-        }
-
+        h1 { color: #fff; font-size: 24px; margin-bottom: 20px; line-height: 1.5; text-transform: uppercase; }
         h1 span { color: #6366f1; } 
 
         .btn-start {
             background: linear-gradient(to bottom, #4f46e5, #3730a3);
             border: 4px solid #fff;
-            color: white;
-            padding: 15px 30px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 14px;
-            cursor: pointer;
-            transition: transform 0.1s;
-            margin-top: 20px;
+            color: white; padding: 15px 30px; font-family: 'Press Start 2P', cursive; font-size: 14px; cursor: pointer; transition: transform 0.1s; margin-top: 20px;
         }
         
         .btn-action {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-family: 'Press Start 2P', cursive;
-            color: white;
+            width: 100%; padding: 16px; border: none; font-weight: bold; font-size: 16px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-family: 'Press Start 2P', cursive; color: white;
         }
         
-        .btn-start:hover, .btn-action:hover { transform: scale(1.02); brightness: 1.1; }
+        .btn-start:hover, .btn-action:hover { transform: scale(1.02); filter: brightness(1.1); }
 
         .controls-hint {
-            margin-top: 30px;
-            font-size: 12px;
-            color: #94a3b8;
-            line-height: 2;
-            border-top: 1px solid #334155;
-            padding-top: 15px;
+            margin-top: 30px; font-size: 12px; color: #94a3b8; line-height: 2; border-top: 1px solid #334155; padding-top: 15px;
         }
-        
-        .key-badge {
-            display: inline-block;
-            background: #334155;
-            padding: 4px 8px;
-            border-radius: 4px;
-            border-bottom: 2px solid #1e293b;
-            color: #fff;
-            margin: 0 5px;
-        }
+        .key-badge { display: inline-block; background: #334155; padding: 4px 8px; border-radius: 4px; border-bottom: 2px solid #1e293b; color: #fff; margin: 0 5px; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
     </style>
 </head>
@@ -211,6 +210,17 @@
                 <div style="color: #4ade80;">SCORE: <span id="scoreEl">0</span></div>
                 <div style="color: #f87171;">SHIELD: <span id="hpEl">100</span>%</div>
             </div>
+            
+            <!-- Boss Fight HUD (Visible only during boss) -->
+            <div id="bossHud" class="boss-hud">
+                <div class="boss-shield-msg">BOSS SHIELD ACTIVE! INTEGRATE ALL FEATURES!</div>
+                <div class="gem-tracker">
+                    <div id="slot-sum" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-compress-alt"></i></div>
+                    <div id="slot-cre" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-pen-fancy"></i></div>
+                    <div id="slot-ana" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-chart-pie"></i></div>
+                </div>
+            </div>
+
             <div class="weapon-display">
                 WEAPON SYSTEM:<br>
                 <span id="weaponName" style="font-size: 18px; color: white;">BASIC PROMPT</span>
@@ -223,14 +233,14 @@
             <h1>GEMINI<br><span>GALAXY DEFENDER</span></h1>
             
             <div class="controls-hint">
-                <p>PILOTA: <span class="key-badge">ARROWS</span></p>
-                <p>FUOCO: <span class="key-badge">SPACEBAR</span> (Tieni premuto)</p>
+                <p>PILOT: <span class="key-badge">ARROWS</span></p>
+                <p>FIRE: <span class="key-badge">SPACEBAR</span> (Hold)</p>
             </div>
 
             <button class="btn-start" onclick="startGame()">LAUNCH MISSION</button>
         </div>
 
-        <!-- INFO CARD POPUP (Hidden by default) -->
+        <!-- INFO CARD (Educational Pause) -->
         <div id="infoCard" class="info-card hidden font-readable">
             <div id="cardHeader" class="card-header bg-blue-600">
                 <div class="card-icon"><i id="cardIconClass" class="fas fa-star"></i></div>
@@ -240,25 +250,56 @@
                 </div>
             </div>
             <div class="card-body">
-                <p id="cardDesc" class="text-gray-700 text-lg leading-relaxed mb-2">Description goes here.</p>
+                <p id="cardDesc" class="text-gray-700 text-lg leading-relaxed mb-2">Desc.</p>
                 <div class="card-example">
-                    <strong class="block text-xs uppercase text-gray-500 mb-1">Esempio Reale:</strong>
-                    <span id="cardExample">"Example text"</span>
+                    <strong class="block text-xs uppercase text-gray-500 mb-1">Real Example:</strong>
+                    <span id="cardExample">"Ex"</span>
                 </div>
             </div>
-            <button id="cardBtn" class="btn-action bg-blue-600" onclick="resumeGame()">EQUIPAGGIA ARMA</button>
+            <button id="cardBtn" class="btn-action bg-blue-600" onclick="resumeGame()">EQUIP WEAPON</button>
+        </div>
+
+        <!-- VICTORY SUMMARY SCREEN -->
+        <div id="victoryScreen" class="menu-screen hidden victory-card font-readable">
+            <div class="text-center mb-6">
+                <div style="font-size: 40px;">🏆</div>
+                <h2 class="text-2xl font-bold text-emerald-600 font-sans">MISSION ACCOMPLISHED!</h2>
+                <p class="text-gray-500 text-sm">You defeated the Backlog Titan by integrating Gemini's powers.</p>
+            </div>
+
+            <div class="victory-item">
+                <div class="victory-icon bg-blue-500"><i class="fas fa-compress-alt"></i></div>
+                <div>
+                    <h3 class="font-bold text-gray-800">SUMMARIZE</h3>
+                    <p class="text-sm text-gray-600">Cut through the noise. Summarize long threads instantly.</p>
+                </div>
+            </div>
+            <div class="victory-item">
+                <div class="victory-icon bg-purple-500"><i class="fas fa-pen-fancy"></i></div>
+                <div>
+                    <h3 class="font-bold text-gray-800">HELP ME WRITE</h3>
+                    <p class="text-sm text-gray-600">Draft emails in seconds. Eliminate writer's block.</p>
+                </div>
+            </div>
+            <div class="victory-item">
+                <div class="victory-icon bg-red-500"><i class="fas fa-chart-pie"></i></div>
+                <div>
+                    <h3 class="font-bold text-gray-800">ANALYZE</h3>
+                    <p class="text-sm text-gray-600">Find data across docs quickly.</p>
+                </div>
+            </div>
+
+            <button class="btn-action bg-emerald-600 mt-2" onclick="location.reload()">PLAY AGAIN</button>
         </div>
 
         <!-- GAME OVER SCREEN -->
         <div id="gameOverScreen" class="menu-screen hidden">
             <h1 style="color: #ef4444;">MISSION FAILED</h1>
             <p style="font-size: 12px; margin-bottom: 20px;">SYSTEM OVERLOADED.</p>
-            <div style="margin-bottom: 20px; font-size: 18px;">FINAL SCORE: <span id="finalScore">0</span></div>
-            <button class="btn-start" onclick="startGame()">RETRY</button>
+            <button class="btn-start" onclick="location.reload()">RETRY</button>
         </div>
     </div>
 
-    <!-- ASSETS -->
     <div style="display:none;">
         <img id="img-zally" src="zally-space.png" onerror="this.src='https://via.placeholder.com/64/6366f1/ffffff?text=Zally'">
     </div>
@@ -268,12 +309,15 @@
         const ctx = canvas.getContext('2d');
         const zallyImg = document.getElementById('img-zally');
 
-        // --- GAME STATE ---
         let gameRunning = false;
-        let isPaused = false; // Nuovo stato pausa per le schede
+        let isPaused = false; 
         let score = 0;
         let frames = 0;
+        let bossActive = false;
         
+        // Collection Tracker for Boss Fight
+        let gemsCollected = { sum: false, cre: false, ana: false };
+
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -281,50 +325,45 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // --- CONFIG ---
         const SETTINGS = {
             playerSpeed: 8,
             fireRate: 15,
-            enemySpawnRate: 50
+            enemySpawnRate: 80, 
+            bossTriggerScore: 300 
         };
 
-        // --- DATA SCHEDE EDUCATIVE ---
         const POWERUP_INFO = {
-            2: { // Summarize
-                title: "SUMMARIZE",
-                desc: "Riassumi lunghe catene di email o documenti complessi in un istante.",
-                example: "\"Riassumi questo thread di 20 email con il fornitore e lista solo le azioni aperte per me.\"",
-                color: "#3b82f6",
-                icon: "fa-compress-alt"
+            2: { 
+                title: "SUMMARIZE", 
+                desc: "Instantly digest long email threads or complex documents.",
+                example: "\"Summarize this thread and list action items for me.\"",
+                color: "#3b82f6", icon: "fa-compress-alt", code: 'sum'
             },
-            3: { // Creative / Help Me Write
+            3: { 
                 title: "HELP ME WRITE",
-                desc: "Sblocca il blocco dello scrittore. Genera bozze di email o testi in secondi.",
-                example: "\"Scrivi una mail gentile ma ferma al fornitore per chiedere la data di consegna mancante.\"",
-                color: "#a855f7",
-                icon: "fa-pen-fancy"
+                desc: "Beat writer's block. Generate email drafts in seconds.",
+                example: "\"Write a polite reminder to the supplier about the delivery.\"",
+                color: "#a855f7", icon: "fa-pen-fancy", code: 'cre'
             },
-            4: { // Analyze
+            4: { 
                 title: "ANALYZE",
-                desc: "Estrai insight dai dati o trova informazioni specifiche in più file.",
-                example: "\"Analizza questo foglio Excel e dimmi qual è il brand con più resi questo mese.\"",
-                color: "#ef4444",
-                icon: "fa-chart-pie"
+                desc: "Find specific info or insights across multiple files.",
+                example: "\"Find the brand with the highest returns in this spreadsheet.\"",
+                color: "#ef4444", icon: "fa-chart-pie", code: 'ana'
+            },
+            5: { // ULTIMATE
+                title: "OMNI-PROMPT READY",
+                desc: "All systems integrated. You can now one-shot the Titan.",
+                example: "PRESS SPACE TO FIRE THE ULTIMATE PROMPT!",
+                color: "#10b981", icon: "fa-star", code: 'ult'
             }
         };
 
         // --- CLASSI ---
 
-        // 1. PLAYER (Zally - INGRANDITO x3)
         const player = {
-            x: canvas.width / 2 - 80, // Centrato considerando width
-            y: canvas.height - 200,
-            w: 160, // TRIPLA GRANDEZZA (era ~50-60)
-            h: 160,
-            speed: 8,
-            hp: 100,
-            weaponLevel: 1, 
-            lastShotTime: 0,
+            x: 0, y: 0, w: 120, h: 120,
+            speed: 8, hp: 100, weaponLevel: 1, lastShotTime: 0,
             
             update: function() {
                 if (keys.ArrowLeft) this.x -= SETTINGS.playerSpeed;
@@ -332,13 +371,11 @@
                 if (keys.ArrowUp) this.y -= SETTINGS.playerSpeed;
                 if (keys.ArrowDown) this.y += SETTINGS.playerSpeed;
 
-                // Limiti
-                if(this.x < -50) this.x = -50;
-                if(this.x + this.w > canvas.width + 50) this.x = canvas.width - this.w + 50;
+                if(this.x < -20) this.x = -20;
+                if(this.x + this.w > canvas.width + 20) this.x = canvas.width - this.w + 20;
                 if(this.y < 0) this.y = 0;
                 if(this.y + this.h > canvas.height) this.y = canvas.height - this.h;
 
-                // Shooting
                 if (keys[' ']) {
                     const fireRate = this.weaponLevel === 3 ? 5 : SETTINGS.fireRate;
                     if (frames - this.lastShotTime > fireRate) {
@@ -355,64 +392,69 @@
                     ctx.fillStyle = '#6366f1';
                     ctx.fillRect(this.x, this.y, this.w, this.h);
                 }
+                // Draw halo if ultimate ready
+                if(player.weaponLevel === 5) {
+                    ctx.strokeStyle = '#10b981';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(this.x+this.w/2, this.y+this.h/2, 70, 0, Math.PI*2);
+                    ctx.stroke();
+                }
             }
         };
 
         function shoot() {
-            // Offset aggiustati per Zally gigante
             const centerX = player.x + player.w/2;
-            const topY = player.y + 20; // Un po' sotto la cima
+            const topY = player.y + 15; 
 
             if(player.weaponLevel === 1) {
                 bullets.push(new Bullet(centerX - 2, topY, 1));
-            } else if (player.weaponLevel === 2) { // Spread
+            } else if (player.weaponLevel === 2) { 
                 bullets.push(new Bullet(centerX - 2, topY, 2));
-                bullets.push(new Bullet(centerX - 20, topY + 20, 2, -3));
-                bullets.push(new Bullet(centerX + 16, topY + 20, 2, 3));
-            } else if (player.weaponLevel === 3) { // Rapid
+                bullets.push(new Bullet(centerX - 20, topY + 10, 2, -3));
+                bullets.push(new Bullet(centerX + 16, topY + 10, 2, 3));
+            } else if (player.weaponLevel === 3) { 
                 bullets.push(new Bullet(centerX - 2, topY, 3));
-            } else if (player.weaponLevel === 4) { // Laser
-                bullets.push(new Bullet(centerX - 8, topY - 20, 4));
+            } else if (player.weaponLevel === 4) { 
+                bullets.push(new Bullet(centerX - 8, topY - 10, 4));
+            } else if (player.weaponLevel === 5) { // ULTIMATE
+                bullets.push(new Bullet(centerX - 25, topY - 30, 5));
             }
         }
 
-        // 2. BULLETS
         class Bullet {
             constructor(x, y, type, vx = 0) {
-                this.x = x; this.y = y; 
-                this.type = type;
-                this.vx = vx;
-                this.markedForDeletion = false;
-
-                if (type === 1) { // Basic
-                    this.w = 6; this.h = 20; this.speed = 12; this.color = '#ffffff'; 
-                } else if (type === 2) { // Summarize
-                    this.w = 12; this.h = 18; this.speed = 10; this.color = '#3b82f6'; 
-                } else if (type === 3) { // Creative
-                    this.w = 6; this.h = 25; this.speed = 22; this.color = '#a855f7'; 
-                } else if (type === 4) { // Analyze
-                    this.w = 16; this.h = 60; this.speed = 28; this.color = '#ef4444'; 
+                this.x = x; this.y = y; this.type = type; this.vx = vx; this.markedForDeletion = false;
+                if (type === 1) { this.w = 6; this.h = 20; this.speed = 12; this.color = '#ffffff'; }
+                else if (type === 2) { this.w = 12; this.h = 18; this.speed = 10; this.color = '#3b82f6'; }
+                else if (type === 3) { this.w = 6; this.h = 25; this.speed = 22; this.color = '#a855f7'; }
+                else if (type === 4) { this.w = 16; this.h = 60; this.speed = 28; this.color = '#ef4444'; }
+                else if (type === 5) { // ULTIMATE
+                    this.w = 50; this.h = 100; this.speed = 35; this.color = '#10b981'; 
                 }
             }
             update() {
-                this.y -= this.speed;
-                this.x += this.vx;
+                this.y -= this.speed; this.x += this.vx;
                 if (this.y < -100) this.markedForDeletion = true;
             }
             draw() {
                 ctx.fillStyle = this.color;
                 ctx.fillRect(this.x, this.y, this.w, this.h);
+                // Trail effect for Ultimate
+                if(this.type === 5) {
+                    ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+                    ctx.fillRect(this.x - 10, this.y, this.w + 20, this.h + 50);
+                }
             }
         }
         let bullets = [];
 
-        // 3. ENEMIES
         class Enemy {
             constructor() {
                 this.w = 50; this.h = 50;
                 this.x = Math.random() * (canvas.width - this.w);
                 this.y = -60;
-                this.speed = Math.random() * 2 + 2 + (score/1000);
+                this.speed = Math.random() * 1.5 + 0.5; 
                 this.markedForDeletion = false;
                 this.type = Math.random();
             }
@@ -420,260 +462,265 @@
                 this.y += this.speed;
                 if (this.y > canvas.height) {
                     this.markedForDeletion = true;
-                    player.hp -= 10; 
-                    updateHUD();
-                    if(player.hp <= 0) gameOver();
+                    player.hp -= 2; updateHUD();
+                    if(player.hp <= 0) gameOver(false);
                 }
             }
             draw() {
                 if (this.type < 0.33) ctx.fillStyle = '#94a3b8'; 
                 else if (this.type < 0.66) ctx.fillStyle = '#fbbf24'; 
                 else ctx.fillStyle = '#ef4444'; 
-                
                 ctx.fillRect(this.x, this.y, this.w, this.h);
-                ctx.fillStyle = 'rgba(0,0,0,0.2)';
-                ctx.fillRect(this.x + 5, this.y + 10, this.w - 10, 5);
-                ctx.fillRect(this.x + 5, this.y + 25, this.w - 10, 5);
+                ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(this.x + 5, this.y + 10, this.w - 10, 5); ctx.fillRect(this.x + 5, this.y + 25, this.w - 10, 5);
             }
         }
         let enemies = [];
 
-        // 4. POWER-UPS (INGRANDITI x3)
+        class Boss {
+            constructor() {
+                this.w = 200; this.h = 150;
+                this.x = canvas.width / 2 - 100;
+                this.y = -160;
+                this.speedX = 2;
+                this.state = 'entering';
+            }
+            update() {
+                if (this.state === 'entering') {
+                    this.y += 1;
+                    if (this.y >= 50) this.state = 'fighting';
+                } else {
+                    this.x += this.speedX;
+                    if (this.x <= 0 || this.x + this.w >= canvas.width) this.speedX *= -1;
+                    this.y = 50 + Math.sin(frames / 50) * 20;
+                }
+            }
+            draw() {
+                // Shield Effect if not vulnerable
+                if (player.weaponLevel !== 5) {
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.w/2, this.y + this.h/2, 120, 0, Math.PI*2);
+                    ctx.stroke();
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = '#dc2626'; ctx.fillRect(this.x, this.y, this.w, this.h);
+                ctx.fillStyle = '#7f1d1d'; ctx.fillRect(this.x + 40, this.y + 50, 30, 30); ctx.fillRect(this.x + 130, this.y + 50, 30, 30);
+                ctx.fillRect(this.x + 60, this.y + 110, 80, 10);
+                ctx.fillStyle = 'white'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText("BACKLOG TITAN", this.x + this.w/2, this.y + 30);
+            }
+        }
+        let boss = null;
+
         class PowerUp {
-            constructor(x, y) {
-                this.x = x; this.y = y; 
-                this.w = 90; // TRIPLA GRANDEZZA (era 30)
-                this.h = 90;
-                this.speed = 2; // Più lenti perché sono importanti
+            constructor(x, y, forceType = null) {
+                this.x = x; this.y = y; this.w = 90; this.h = 90;
+                this.speed = 1.5;
                 this.markedForDeletion = false;
                 
-                const rand = Math.random();
-                if (rand < 0.33) { this.type = 2; this.color = '#3b82f6'; this.label="SUM"; this.icon="fa-compress-alt"; }
-                else if (rand < 0.66) { this.type = 3; this.color = '#a855f7'; this.label="CRE"; this.icon="fa-pen-fancy"; }
-                else { this.type = 4; this.color = '#ef4444'; this.label="ANA"; this.icon="fa-chart-pie"; }
+                if (forceType) {
+                    this.type = forceType;
+                } else {
+                    const rand = Math.random();
+                    if (rand < 0.33) this.type = 2;
+                    else if (rand < 0.66) this.type = 3;
+                    else this.type = 4;
+                }
+
+                const info = POWERUP_INFO[this.type];
+                this.color = info.color;
+                this.label = info.code.toUpperCase();
             }
             update() {
                 this.y += this.speed;
                 if(this.y > canvas.height) this.markedForDeletion = true;
             }
             draw() {
-                // Cerchio esterno
                 ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x + this.w/2, this.y + this.h/2, this.w/2, 0, Math.PI*2);
-                ctx.fill();
-                
-                // Bordo pulsante
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = 'white';
-                ctx.stroke();
-                
-                // Testo Grande
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 20px Arial';
-                ctx.textAlign = 'center';
+                ctx.beginPath(); ctx.arc(this.x + this.w/2, this.y + this.h/2, this.w/2, 0, Math.PI*2); ctx.fill();
+                ctx.lineWidth = 4; ctx.strokeStyle = 'white'; ctx.stroke();
+                ctx.fillStyle = 'white'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'center';
                 ctx.fillText(this.label, this.x + this.w/2, this.y + this.h/2 + 8);
-                
-                // "Glow"
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 20; ctx.shadowColor = this.color;
             }
         }
         let powerups = [];
 
-        // 5. PARTICLES
         class Particle {
             constructor(x, y, color) {
-                this.x = x; this.y = y; 
-                this.size = Math.random() * 3 + 2;
-                this.speedX = Math.random() * 6 - 3; 
-                this.speedY = Math.random() * 6 - 3;
+                this.x = x; this.y = y; this.size = Math.random() * 4 + 2;
+                this.speedX = Math.random() * 6 - 3; this.speedY = Math.random() * 6 - 3;
                 this.color = color; this.life = 100;
             }
             update() { this.x += this.speedX; this.y += this.speedY; this.life -= 3; }
             draw() {
                 ctx.globalAlpha = this.life / 100; ctx.fillStyle = this.color;
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
-                ctx.globalAlpha = 1.0;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1.0;
             }
         }
         let particles = [];
 
-        // 6. STARS
         let stars = [];
         function initStars() {
-            stars = [];
-            for(let i=0; i<80; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, speed:Math.random()*3+1});
+            stars = []; for(let i=0; i<80; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, speed:Math.random()*3+1});
         }
         function drawStars() {
             ctx.fillStyle = 'white';
-            stars.forEach(s => {
-                s.y += s.speed; 
-                if(s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; }
-                ctx.fillRect(s.x, s.y, 2, 2);
-            });
+            stars.forEach(s => { s.y += s.speed; if(s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; } ctx.fillRect(s.x, s.y, 2, 2); });
         }
 
-        // --- INPUT SYSTEM ---
+        // --- INPUT ---
         const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false, ' ': false };
         window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
         window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
-
-        // Touch
-        canvas.addEventListener('touchmove', e => {
-            e.preventDefault();
-            if(isPaused) return;
-            const touch = e.touches[0];
-            player.x = touch.clientX - player.w/2;
-            player.y = touch.clientY - player.h/2;
-        });
-        canvas.addEventListener('touchstart', e => {
-            if(isPaused) return;
-            keys[' '] = true;
-        });
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); if(isPaused) return; const touch = e.touches[0]; player.x = touch.clientX - player.w/2; player.y = touch.clientY - player.h/2; });
+        canvas.addEventListener('touchstart', e => { if(isPaused) return; keys[' '] = true; });
         canvas.addEventListener('touchend', e => { keys[' '] = false; });
 
-
-        // --- LOGICA PAUSA & SCHEDE ---
         function showInfoCard(type) {
             isPaused = true;
             const info = POWERUP_INFO[type];
             const card = document.getElementById('infoCard');
-            
-            // Popola contenuti
             document.getElementById('cardHeader').style.backgroundColor = info.color;
             document.getElementById('cardBtn').style.backgroundColor = info.color;
             document.getElementById('cardTitle').innerText = info.title;
             document.getElementById('cardDesc').innerText = info.desc;
             document.getElementById('cardExample').innerText = info.example;
-            
-            // Icona FontAwesome
             const iconEl = document.getElementById('cardIconClass');
             iconEl.className = `fas ${info.icon}`;
-
-            // Mostra
-            card.classList.remove('hidden');
-            setTimeout(() => card.classList.add('active'), 10); // Animazione
+            card.classList.remove('hidden'); setTimeout(() => card.classList.add('active'), 10);
         }
 
         function resumeGame() {
             const card = document.getElementById('infoCard');
             card.classList.remove('active');
-            setTimeout(() => {
-                card.classList.add('hidden');
-                isPaused = false;
-                // Reset keys per evitare spari accidentali immediati
-                keys[' '] = false;
-                // Riavvia loop se necessario (ma requestAnimationFrame continua a girare, solo update bloccato)
-            }, 300);
+            setTimeout(() => { card.classList.add('hidden'); isPaused = false; keys[' '] = false; }, 300);
         }
-        // Esponi a window per il button onclick
         window.resumeGame = resumeGame;
 
+        // --- LOGIC ---
+        function checkGemCollection(type) {
+            // Update Tracker
+            const code = POWERUP_INFO[type].code;
+            if (gemsCollected[code] === false) {
+                gemsCollected[code] = true;
+                document.getElementById(`slot-${code}`).style.backgroundColor = POWERUP_INFO[type].color;
+                document.getElementById(`slot-${code}`).classList.add('active');
+                
+                // Check if ALL collected
+                if (gemsCollected.sum && gemsCollected.cre && gemsCollected.ana) {
+                    // UNLOCK ULTIMATE
+                    setTimeout(() => {
+                        player.weaponLevel = 5;
+                        updateWeaponName();
+                        showInfoCard(5); // Show Ultimate Info
+                    }, 500);
+                }
+            }
+        }
 
-        // --- GAME LOOP ---
         function gameLoop() {
             if(!gameRunning) return;
-
-            // Sfondo sempre attivo
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawStars();
 
-            // Se in pausa, disegna tutto statico ma non aggiorna posizioni
             if (isPaused) {
-                player.draw();
-                bullets.forEach(b => b.draw());
-                enemies.forEach(e => e.draw());
-                powerups.forEach(p => p.draw());
-                particles.forEach(p => p.draw());
-                
-                // Overlay scuro
-                ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                ctx.fillRect(0,0,canvas.width, canvas.height);
-                
-                requestAnimationFrame(gameLoop);
-                return; 
+                if(boss) boss.draw(); player.draw(); bullets.forEach(b => b.draw()); enemies.forEach(e => e.draw()); powerups.forEach(p => p.draw()); particles.forEach(p => p.draw());
+                ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,canvas.width, canvas.height);
+                requestAnimationFrame(gameLoop); return; 
             }
 
-            // --- UPDATE LOGIC (Solo se non in pausa) ---
+            if (!bossActive && score >= SETTINGS.bossTriggerScore) {
+                bossActive = true;
+                boss = new Boss();
+                document.getElementById('bossHud').style.display = 'block';
+                enemies.forEach(e => createExplosion(e.x+e.w/2, e.y+e.h/2, '#ffffff'));
+                enemies = [];
+            }
 
             player.update();
             player.draw();
 
-            // Spawn Enemies
-            if(frames % SETTINGS.enemySpawnRate === 0) enemies.push(new Enemy());
-
-            // Bullets
-            bullets.forEach((b, i) => {
-                b.update(); b.draw();
-                if(b.markedForDeletion) bullets.splice(i, 1);
-            });
-
-            // Enemies
-            enemies.forEach((e, eIndex) => {
-                e.update(); e.draw();
-
-                // Collision Bullet-Enemy
-                bullets.forEach((b, bIndex) => {
-                    if(!b.markedForDeletion && !e.markedForDeletion &&
-                       b.x < e.x + e.w && b.x + b.w > e.x &&
-                       b.y < e.y + e.h && b.y + b.h > e.y) {
+            if (bossActive && boss) {
+                boss.update();
+                boss.draw();
+                
+                bullets.forEach((b, i) => {
+                    if(!b.markedForDeletion && 
+                       b.x > boss.x && b.x < boss.x + boss.w &&
+                       b.y > boss.y && b.y < boss.y + boss.h) {
                         
-                        createExplosion(e.x + e.w/2, e.y + e.h/2, '#ffffff');
-                        score += 10;
-                        e.markedForDeletion = true;
-                        b.markedForDeletion = true; 
-
-                        // Drop Chance (aumentata al 30% per demo)
-                        if(Math.random() < 0.3) { 
-                            powerups.push(new PowerUp(e.x, e.y));
+                        if (b.type === 5) {
+                            // ULTIMATE HIT -> INSTANT WIN
+                            createExplosion(boss.x + boss.w/2, boss.y + boss.h/2, '#ef4444');
+                            createExplosion(boss.x, boss.y, '#ffffff');
+                            createExplosion(boss.x + boss.w, boss.y + boss.h, '#ffffff');
+                            boss = null;
+                            gameOver(true);
+                        } else {
+                            // Normal hits do nothing but explode
+                            createExplosion(b.x, b.y, '#ffffff');
+                            // Maybe play a "clink" sound effect visual
                         }
+                        b.markedForDeletion = true;
                     }
                 });
 
-                // Collision Player-Enemy
-                // Aggiustiamo hitbox per Zally grande (più piccolo dell'immagine)
-                const hitboxPadding = 40; 
-                if(!e.markedForDeletion &&
-                   player.x + hitboxPadding < e.x + e.w && 
-                   player.x + player.w - hitboxPadding > e.x &&
-                   player.y + hitboxPadding < e.y + e.h && 
-                   player.y + player.h - hitboxPadding > e.y) {
+                // Spawn specific gems if needed during boss
+                if (frames % 100 === 0) {
+                    // Ensure player gets missing gems
+                    let neededType = null;
+                    if (!gemsCollected.sum) neededType = 2;
+                    else if (!gemsCollected.cre) neededType = 3;
+                    else if (!gemsCollected.ana) neededType = 4;
                     
-                    createExplosion(player.x + player.w/2, player.y + player.h/2, '#ef4444');
-                    player.hp -= 20;
-                    player.weaponLevel = 1; 
-                    updateWeaponName();
-                    e.markedForDeletion = true;
-                    if(player.hp <= 0) gameOver();
+                    if (neededType) {
+                        powerups.push(new PowerUp(Math.random() * (canvas.width - 100), -50, neededType));
+                    }
                 }
 
+            } else {
+                if(frames % SETTINGS.enemySpawnRate === 0) enemies.push(new Enemy());
+            }
+
+            bullets.forEach((b, i) => { b.update(); b.draw(); if(b.markedForDeletion) bullets.splice(i, 1); });
+
+            enemies.forEach((e, eIndex) => {
+                e.update(); e.draw();
+                bullets.forEach((b, bIndex) => {
+                    if(!b.markedForDeletion && !e.markedForDeletion && b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
+                        createExplosion(e.x + e.w/2, e.y + e.h/2, '#ffffff');
+                        score += 10; e.markedForDeletion = true; b.markedForDeletion = true; 
+                        if(Math.random() < 0.5) powerups.push(new PowerUp(e.x, e.y));
+                    }
+                });
+                const pad = 30; 
+                if(!e.markedForDeletion && player.x + pad < e.x + e.w && player.x + player.w - pad > e.x && player.y + pad < e.y + e.h && player.y + player.h - pad > e.y) {
+                    createExplosion(player.x + player.w/2, player.y + player.h/2, '#ef4444');
+                    player.hp -= 2; player.weaponLevel = 1; updateWeaponName(); e.markedForDeletion = true;
+                    if(player.hp <= 0) gameOver(false);
+                }
                 if(e.markedForDeletion) enemies.splice(eIndex, 1);
             });
 
-            // PowerUps
             powerups.forEach((p, i) => {
                 p.update(); p.draw();
-                
-                // Collision Player-Powerup
-                // Hitbox generosa
-                if(player.x < p.x + p.w && player.x + player.w > p.x &&
-                   player.y < p.y + p.h && player.y + player.h > p.y) {
-                    
+                if(player.x < p.x + p.w && player.x + player.w > p.x && player.y < p.y + p.h && player.y + player.h > p.y) {
                     player.weaponLevel = p.type;
                     score += 50;
                     createExplosion(p.x + p.w/2, p.y + p.h/2, p.color);
                     updateWeaponName();
                     p.markedForDeletion = true;
                     
-                    // TRIGGER PAUSA & SCHEDA
+                    if (bossActive) checkGemCollection(p.type);
+                    
                     showInfoCard(p.type);
                 }
-
                 if(p.markedForDeletion) powerups.splice(i, 1);
             });
 
-            // Particles
             particles.forEach((p, i) => { p.update(); p.draw(); if(p.life <= 0) particles.splice(i, 1); });
 
             updateHUD();
@@ -681,55 +728,55 @@
             requestAnimationFrame(gameLoop);
         }
 
-        function createExplosion(x, y, color) {
-            for(let i=0; i<10; i++) particles.push(new Particle(x, y, color));
-        }
-
-        function updateHUD() {
-            document.getElementById('scoreEl').innerText = score;
-            document.getElementById('hpEl').innerText = Math.max(0, player.hp);
-        }
-
+        function createExplosion(x, y, color) { for(let i=0; i<10; i++) particles.push(new Particle(x, y, color)); }
+        function updateHUD() { document.getElementById('scoreEl').innerText = score; document.getElementById('hpEl').innerText = Math.max(0, player.hp); }
         function updateWeaponName() {
             const el = document.getElementById('weaponName');
             if(player.weaponLevel === 1) { el.innerText = "BASIC PROMPT"; el.style.color = "white"; }
             else if(player.weaponLevel === 2) { el.innerText = "SUMMARIZE"; el.style.color = "#3b82f6"; }
             else if(player.weaponLevel === 3) { el.innerText = "HELP ME WRITE"; el.style.color = "#a855f7"; }
             else if(player.weaponLevel === 4) { el.innerText = "ANALYZE"; el.style.color = "#ef4444"; }
+            else if(player.weaponLevel === 5) { el.innerText = "GEMINI OMNI-BEAM"; el.style.color = "#10b981"; }
         }
 
         function startGame() {
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('victoryScreen').classList.add('hidden');
             document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('bossHud').style.display = 'none';
             
-            score = 0; frames = 0;
-            player.hp = 100; player.weaponLevel = 1; 
-            // Reset Posizione
-            player.x = canvas.width/2 - player.w/2; 
-            player.y = canvas.height - 200;
+            score = 0; frames = 0; player.hp = 100; player.weaponLevel = 1; 
+            player.x = canvas.width/2 - player.w/2; player.y = canvas.height - 200;
             
             bullets = []; enemies = []; particles = []; powerups = [];
+            bossActive = false; boss = null;
+            gemsCollected = { sum: false, cre: false, ana: false };
+            
+            // Reset UI Slots
+            ['sum', 'cre', 'ana'].forEach(c => {
+               const el = document.getElementById(`slot-${c}`);
+               el.style.backgroundColor = 'rgba(0,0,0,0.5)';
+               el.classList.remove('active');
+            });
+
             updateWeaponName();
             initStars();
-            gameRunning = true;
-            isPaused = false;
+            gameRunning = true; isPaused = false;
             gameLoop();
         }
 
-        function gameOver() {
+        function gameOver(victory) {
             gameRunning = false;
-            document.getElementById('gameOverScreen').classList.remove('hidden');
-            document.getElementById('finalScore').innerText = score;
+            if (victory) {
+                document.getElementById('victoryScreen').classList.remove('hidden');
+            } else {
+                document.getElementById('gameOverScreen').classList.remove('hidden');
+            }
         }
 
         initStars();
-        setInterval(() => {
-            if(!gameRunning) {
-                ctx.clearRect(0,0,canvas.width, canvas.height);
-                drawStars();
-            }
-        }, 1000/30);
+        setInterval(() => { if(!gameRunning) { ctx.clearRect(0,0,canvas.width, canvas.height); drawStars(); } }, 1000/30);
 
     </script>
 </body>
