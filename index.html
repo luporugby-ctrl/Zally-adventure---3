@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Galaxy Defender v5.1 - Fixed</title>
+    <title>Gemini Galaxy Defender v5.3 - 3 Pillars</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -213,11 +213,11 @@
             
             <!-- Boss Fight HUD -->
             <div id="bossHud" class="boss-hud">
-                <div class="boss-shield-msg">BOSS SHIELD ACTIVE! INTEGRATE ALL FEATURES!</div>
+                <div class="boss-shield-msg">BOSS SHIELD ACTIVE! COLLECT ALL 3 PILLARS!</div>
                 <div class="gem-tracker">
-                    <div id="slot-sum" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-compress-alt"></i></div>
-                    <div id="slot-cre" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-pen-fancy"></i></div>
-                    <div id="slot-ana" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-chart-pie"></i></div>
+                    <div id="slot-sum" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-envelope-open-text"></i></div>
+                    <div id="slot-cre" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-search"></i></div>
+                    <div id="slot-ana" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-calendar-check"></i></div>
                 </div>
             </div>
 
@@ -240,7 +240,7 @@
             <button class="btn-start" onclick="startGame()">LAUNCH MISSION</button>
         </div>
 
-        <!-- INFO CARD -->
+        <!-- INFO CARD (Educational Pause) -->
         <div id="infoCard" class="info-card hidden font-readable">
             <div id="cardHeader" class="card-header bg-blue-600">
                 <div class="card-icon"><i id="cardIconClass" class="fas fa-star"></i></div>
@@ -252,7 +252,7 @@
             <div class="card-body">
                 <p id="cardDesc" class="text-gray-700 text-lg leading-relaxed mb-2">Desc.</p>
                 <div class="card-example">
-                    <strong class="block text-xs uppercase text-gray-500 mb-1">Real Example:</strong>
+                    <strong class="block text-xs uppercase text-gray-500 mb-1">Try this prompt:</strong>
                     <span id="cardExample">"Ex"</span>
                 </div>
             </div>
@@ -264,28 +264,28 @@
             <div class="text-center mb-6">
                 <div style="font-size: 40px;">🏆</div>
                 <h2 class="text-2xl font-bold text-emerald-600 font-sans">MISSION ACCOMPLISHED!</h2>
-                <p class="text-gray-500 text-sm">You defeated the Backlog Titan by integrating Gemini's powers.</p>
+                <p class="text-gray-500 text-sm">You mastered the 3 Pillars of Gemini in Gmail.</p>
             </div>
 
             <div class="victory-item">
-                <div class="victory-icon bg-blue-500"><i class="fas fa-compress-alt"></i></div>
+                <div class="victory-icon bg-blue-500"><i class="fas fa-envelope-open-text"></i></div>
                 <div>
-                    <h3 class="font-bold text-gray-800">SUMMARIZE</h3>
-                    <p class="text-sm text-gray-600">Cut through the noise. Summarize long threads instantly.</p>
+                    <h3 class="font-bold text-gray-800">DRAFT & SUMMARIZE</h3>
+                    <p class="text-sm text-gray-600">Summarize threads instantly. Draft emails using Drive files.</p>
                 </div>
             </div>
             <div class="victory-item">
-                <div class="victory-icon bg-purple-500"><i class="fas fa-pen-fancy"></i></div>
+                <div class="victory-icon bg-purple-500"><i class="fas fa-search"></i></div>
                 <div>
-                    <h3 class="font-bold text-gray-800">HELP ME WRITE</h3>
-                    <p class="text-sm text-gray-600">Draft emails in seconds. Eliminate writer's block.</p>
+                    <h3 class="font-bold text-gray-800">SMART SEARCH</h3>
+                    <p class="text-sm text-gray-600">Find tracking #s, flights, & unread mails fast.</p>
                 </div>
             </div>
             <div class="victory-item">
-                <div class="victory-icon bg-red-500"><i class="fas fa-chart-pie"></i></div>
+                <div class="victory-icon bg-red-500"><i class="fas fa-calendar-check"></i></div>
                 <div>
-                    <h3 class="font-bold text-gray-800">ANALYZE</h3>
-                    <p class="text-sm text-gray-600">Find data across docs quickly.</p>
+                    <h3 class="font-bold text-gray-800">ORGANIZE & PLAN</h3>
+                    <p class="text-sm text-gray-600">Add events to Calendar & manage labels easily.</p>
                 </div>
             </div>
 
@@ -330,29 +330,30 @@
             bossTriggerScore: 300 
         };
 
+        // --- THE 3 PILLARS POWER-UP DATA ---
         const POWERUP_INFO = {
             2: { 
-                title: "SUMMARIZE", 
-                desc: "Instantly digest long email threads or complex documents.",
-                example: "\"Summarize this thread and list action items for me.\"",
-                color: "#3b82f6", icon: "fa-compress-alt", code: 'sum'
+                title: "DRAFT & SUMMARIZE", 
+                desc: "Summarize long threads & draft replies using Drive docs.",
+                example: "\"Summarize this email\" or \"Draft a reply using the Project Plan doc.\"",
+                color: "#3b82f6", icon: "fa-envelope-open-text", code: 'sum'
             },
             3: { 
-                title: "HELP ME WRITE",
-                desc: "Beat writer's block. Generate email drafts in seconds.",
-                example: "\"Write a polite reminder to the supplier about the delivery.\"",
-                color: "#a855f7", icon: "fa-pen-fancy", code: 'cre'
+                title: "SMART SEARCH",
+                desc: "Find info buried in emails (flights, receipts) instantly.",
+                example: "\"When is my package arriving?\" or \"Show emails from Tom last week.\"",
+                color: "#a855f7", icon: "fa-search", code: 'cre'
             },
             4: { 
-                title: "ANALYZE",
-                desc: "Find specific info or insights across multiple files.",
-                example: "\"Find the brand with the highest returns in this spreadsheet.\"",
-                color: "#ef4444", icon: "fa-chart-pie", code: 'ana'
+                title: "ORGANIZE & PLAN",
+                desc: "Create Calendar events & get Gmail settings help.",
+                example: "\"Add lunch to calendar tomorrow\" or \"How do I create a label?\"",
+                color: "#ef4444", icon: "fa-calendar-check", code: 'ana'
             },
             5: { // ULTIMATE
-                title: "OMNI-PROMPT READY",
-                desc: "All systems integrated. You can now one-shot the Titan.",
-                example: "PRESS SPACE TO FIRE THE ULTIMATE PROMPT!",
+                title: "INBOX ZERO HERO",
+                desc: "All pillars integrated! The Titan is vulnerable.",
+                example: "PRESS SPACE TO ARCHIVE THE BACKLOG!",
                 color: "#10b981", icon: "fa-star", code: 'ult'
             }
         };
@@ -375,7 +376,7 @@
                 if(this.y + this.h > canvas.height) this.y = canvas.height - this.h;
 
                 if (keys[' ']) {
-                    const fireRate = this.weaponLevel === 3 ? 5 : SETTINGS.fireRate;
+                    const fireRate = this.weaponLevel === 5 ? 5 : SETTINGS.fireRate;
                     if (frames - this.lastShotTime > fireRate) {
                         shoot();
                         this.lastShotTime = frames;
@@ -390,7 +391,6 @@
                     ctx.fillStyle = '#6366f1';
                     ctx.fillRect(this.x, this.y, this.w, this.h);
                 }
-                // Draw halo if ultimate ready
                 if(player.weaponLevel === 5) {
                     ctx.strokeStyle = '#10b981';
                     ctx.lineWidth = 3;
@@ -407,13 +407,13 @@
 
             if(player.weaponLevel === 1) {
                 bullets.push(new Bullet(centerX - 2, topY, 1));
-            } else if (player.weaponLevel === 2) { 
+            } else if (player.weaponLevel === 2) { // DRAFT (Spread)
                 bullets.push(new Bullet(centerX - 2, topY, 2));
                 bullets.push(new Bullet(centerX - 20, topY + 10, 2, -3));
                 bullets.push(new Bullet(centerX + 16, topY + 10, 2, 3));
-            } else if (player.weaponLevel === 3) { 
+            } else if (player.weaponLevel === 3) { // SEARCH (Rapid)
                 bullets.push(new Bullet(centerX - 2, topY, 3));
-            } else if (player.weaponLevel === 4) { 
+            } else if (player.weaponLevel === 4) { // ORGANIZE (Laser)
                 bullets.push(new Bullet(centerX - 8, topY - 10, 4));
             } else if (player.weaponLevel === 5) { // ULTIMATE
                 bullets.push(new Bullet(centerX - 25, topY - 30, 5));
@@ -427,7 +427,7 @@
                 else if (type === 2) { this.w = 12; this.h = 18; this.speed = 10; this.color = '#3b82f6'; }
                 else if (type === 3) { this.w = 6; this.h = 25; this.speed = 22; this.color = '#a855f7'; }
                 else if (type === 4) { this.w = 16; this.h = 60; this.speed = 28; this.color = '#ef4444'; }
-                else if (type === 5) { // ULTIMATE
+                else if (type === 5) { 
                     this.w = 50; this.h = 100; this.speed = 35; this.color = '#10b981'; 
                 }
             }
@@ -526,6 +526,12 @@
 
                 const info = POWERUP_INFO[this.type];
                 this.color = info.color;
+                
+                // Icons mapping
+                if(this.type === 2) this.icon = "fa-envelope-open-text";
+                if(this.type === 3) this.icon = "fa-search";
+                if(this.type === 4) this.icon = "fa-calendar-check";
+                
                 this.label = info.code.toUpperCase();
             }
             update() {
@@ -536,8 +542,9 @@
                 ctx.fillStyle = this.color;
                 ctx.beginPath(); ctx.arc(this.x + this.w/2, this.y + this.h/2, this.w/2, 0, Math.PI*2); ctx.fill();
                 ctx.lineWidth = 4; ctx.strokeStyle = 'white'; ctx.stroke();
-                ctx.fillStyle = 'white'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'center';
-                ctx.fillText(this.label, this.x + this.w/2, this.y + this.h/2 + 8);
+                
+                ctx.fillStyle = 'white'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
+                ctx.fillText(this.label, this.x + this.w/2, this.y + this.h/2 + 6);
                 ctx.shadowBlur = 20; ctx.shadowColor = this.color;
             }
         }
@@ -718,10 +725,10 @@
         function updateWeaponName() {
             const el = document.getElementById('weaponName');
             if(player.weaponLevel === 1) { el.innerText = "BASIC PROMPT"; el.style.color = "white"; }
-            else if(player.weaponLevel === 2) { el.innerText = "SUMMARIZE"; el.style.color = "#3b82f6"; }
-            else if(player.weaponLevel === 3) { el.innerText = "HELP ME WRITE"; el.style.color = "#a855f7"; }
-            else if(player.weaponLevel === 4) { el.innerText = "ANALYZE"; el.style.color = "#ef4444"; }
-            else if(player.weaponLevel === 5) { el.innerText = "GEMINI OMNI-BEAM"; el.style.color = "#10b981"; }
+            else if(player.weaponLevel === 2) { el.innerText = "DRAFT & SUMMARIZE"; el.style.color = "#3b82f6"; }
+            else if(player.weaponLevel === 3) { el.innerText = "SMART SEARCH"; el.style.color = "#a855f7"; }
+            else if(player.weaponLevel === 4) { el.innerText = "ORGANIZE & PLAN"; el.style.color = "#ef4444"; }
+            else if(player.weaponLevel === 5) { el.innerText = "INBOX ZERO HERO"; el.style.color = "#10b981"; }
         }
 
         function startGame() {
@@ -732,13 +739,13 @@
             document.getElementById('bossHud').style.display = 'none';
             
             score = 0; frames = 0; player.hp = 100; player.weaponLevel = 1; 
+            player.lastShotTime = 0; 
             player.x = canvas.width/2 - player.w/2; player.y = canvas.height - 200;
             
             bullets = []; enemies = []; particles = []; powerups = [];
             bossActive = false; boss = null;
             gemsCollected = { sum: false, cre: false, ana: false };
             
-            // Reset UI Slots
             ['sum', 'cre', 'ana'].forEach(c => {
                const el = document.getElementById(`slot-${c}`);
                el.style.backgroundColor = 'rgba(0,0,0,0.5)';
