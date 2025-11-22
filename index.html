@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Galaxy Defender v5.4 - Arcade Style</title>
+    <title>Gemini Galaxy Defender v5.5 - Gmail Logo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -244,7 +244,6 @@
                 <div class="gem-tracker">
                     <div id="slot-sum" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-envelope-open-text"></i></div>
                     <div id="slot-cre" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-search"></i></div>
-                    <!-- CHANGED ID to slot-cal -->
                     <div id="slot-cal" class="gem-slot" style="background-color: #1e293b;"><i class="fas fa-calendar-check"></i></div>
                 </div>
             </div>
@@ -330,19 +329,21 @@
 
     <div style="display:none;">
         <img id="img-zally" src="zally-space.png" onerror="this.src='https://via.placeholder.com/64/6366f1/ffffff?text=Zally'">
+        <!-- NEW: Gmail Logo Asset -->
+        <img id="img-enemy" src="logo_gmail.png" onerror="this.src='https://via.placeholder.com/64/ef4444/ffffff?text=Gmail'">
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const zallyImg = document.getElementById('img-zally');
+        const enemyImg = document.getElementById('img-enemy');
 
         let gameRunning = false;
         let isPaused = false; 
         let score = 0;
         let frames = 0;
         let bossActive = false;
-        // Changed 'ana' to 'cal'
         let gemsCollected = { sum: false, cre: false, cal: false };
 
         function resize() {
@@ -377,7 +378,7 @@
                 title: "ORGANIZE & PLAN",
                 desc: "Create Calendar events & get Gmail settings help.",
                 example: "\"Add lunch to calendar tomorrow\" or \"How do I create a label?\"",
-                color: "#ef4444", icon: "fa-calendar-check", code: 'cal' // Changed code to 'cal'
+                color: "#ef4444", icon: "fa-calendar-check", code: 'cal'
             },
             5: { // ULTIMATE
                 title: "INBOX ZERO HERO",
@@ -436,15 +437,15 @@
 
             if(player.weaponLevel === 1) {
                 bullets.push(new Bullet(centerX - 2, topY, 1));
-            } else if (player.weaponLevel === 2) { 
+            } else if (player.weaponLevel === 2) { // Spread (Draft)
                 bullets.push(new Bullet(centerX - 2, topY, 2));
                 bullets.push(new Bullet(centerX - 20, topY + 10, 2, -3));
                 bullets.push(new Bullet(centerX + 16, topY + 10, 2, 3));
-            } else if (player.weaponLevel === 3) { 
+            } else if (player.weaponLevel === 3) { // Rapid (Search)
                 bullets.push(new Bullet(centerX - 2, topY, 3));
-            } else if (player.weaponLevel === 4) { 
+            } else if (player.weaponLevel === 4) { // Laser (Organize)
                 bullets.push(new Bullet(centerX - 8, topY - 10, 4));
-            } else if (player.weaponLevel === 5) { 
+            } else if (player.weaponLevel === 5) { // ULTIMATE
                 bullets.push(new Bullet(centerX - 25, topY - 30, 5));
             }
         }
@@ -493,11 +494,17 @@
                 }
             }
             draw() {
-                if (this.type < 0.33) ctx.fillStyle = '#94a3b8'; 
-                else if (this.type < 0.66) ctx.fillStyle = '#fbbf24'; 
-                else ctx.fillStyle = '#ef4444'; 
-                ctx.fillRect(this.x, this.y, this.w, this.h);
-                ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(this.x + 5, this.y + 10, this.w - 10, 5); ctx.fillRect(this.x + 5, this.y + 25, this.w - 10, 5);
+                // Replace rectangles with Gmail Logo
+                if (enemyImg.complete && enemyImg.naturalWidth !== 0) {
+                    ctx.drawImage(enemyImg, this.x, this.y, this.w, this.h);
+                } else {
+                    // Fallback if logo missing
+                    if (this.type < 0.33) ctx.fillStyle = '#94a3b8'; 
+                    else if (this.type < 0.66) ctx.fillStyle = '#fbbf24'; 
+                    else ctx.fillStyle = '#ef4444'; 
+                    ctx.fillRect(this.x, this.y, this.w, this.h);
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(this.x + 5, this.y + 10, this.w - 10, 5); ctx.fillRect(this.x + 5, this.y + 25, this.w - 10, 5);
+                }
             }
         }
         let enemies = [];
@@ -665,7 +672,7 @@
                 document.getElementById(`slot-${code}`).style.backgroundColor = POWERUP_INFO[type].color;
                 document.getElementById(`slot-${code}`).classList.add('active');
                 
-                if (gemsCollected.sum && gemsCollected.cre && gemsCollected.cal) { // changed ana to cal
+                if (gemsCollected.sum && gemsCollected.cre && gemsCollected.cal) { 
                     setTimeout(() => {
                         player.weaponLevel = 5;
                         updateWeaponName();
@@ -737,7 +744,7 @@
                     let neededType = null;
                     if (!gemsCollected.sum) neededType = 2;
                     else if (!gemsCollected.cre) neededType = 3;
-                    else if (!gemsCollected.cal) neededType = 4; // changed ana to cal
+                    else if (!gemsCollected.cal) neededType = 4; 
                     
                     if (neededType) {
                         powerups.push(new PowerUp(Math.random() * (canvas.width - 100), -50, neededType));
@@ -815,9 +822,9 @@
             
             bullets = []; enemies = []; particles = []; powerups = [];
             bossActive = false; boss = null;
-            gemsCollected = { sum: false, cre: false, cal: false }; // changed ana to cal
+            gemsCollected = { sum: false, cre: false, cal: false }; 
             
-            ['sum', 'cre', 'cal'].forEach(c => { // changed ana to cal
+            ['sum', 'cre', 'cal'].forEach(c => { 
                const el = document.getElementById(`slot-${c}`);
                if(el) {
                    el.style.backgroundColor = 'rgba(0,0,0,0.5)';
