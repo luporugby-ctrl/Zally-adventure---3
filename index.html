@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Galaxy Defender v5 - Ultimate Edition</title>
+    <title>Gemini Galaxy Defender v5.1 - Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -61,7 +61,7 @@
             top: 60px;
             left: 50%;
             transform: translateX(-50%);
-            display: none; /* Hidden initially */
+            display: none; 
             text-align: center;
             width: 300px;
         }
@@ -105,7 +105,7 @@
         }
 
         /* Screens */
-        .menu-screen, .card-modal {
+        .menu-screen {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -211,7 +211,7 @@
                 <div style="color: #f87171;">SHIELD: <span id="hpEl">100</span>%</div>
             </div>
             
-            <!-- Boss Fight HUD (Visible only during boss) -->
+            <!-- Boss Fight HUD -->
             <div id="bossHud" class="boss-hud">
                 <div class="boss-shield-msg">BOSS SHIELD ACTIVE! INTEGRATE ALL FEATURES!</div>
                 <div class="gem-tracker">
@@ -240,7 +240,7 @@
             <button class="btn-start" onclick="startGame()">LAUNCH MISSION</button>
         </div>
 
-        <!-- INFO CARD (Educational Pause) -->
+        <!-- INFO CARD -->
         <div id="infoCard" class="info-card hidden font-readable">
             <div id="cardHeader" class="card-header bg-blue-600">
                 <div class="card-icon"><i id="cardIconClass" class="fas fa-star"></i></div>
@@ -296,7 +296,7 @@
         <div id="gameOverScreen" class="menu-screen hidden">
             <h1 style="color: #ef4444;">MISSION FAILED</h1>
             <p style="font-size: 12px; margin-bottom: 20px;">SYSTEM OVERLOADED.</p>
-            <button class="btn-start" onclick="location.reload()">RETRY</button>
+            <button class="btn-start" onclick="startGame()">RETRY</button>
         </div>
     </div>
 
@@ -314,8 +314,6 @@
         let score = 0;
         let frames = 0;
         let bossActive = false;
-        
-        // Collection Tracker for Boss Fight
         let gemsCollected = { sum: false, cre: false, ana: false };
 
         function resize() {
@@ -440,7 +438,6 @@
             draw() {
                 ctx.fillStyle = this.color;
                 ctx.fillRect(this.x, this.y, this.w, this.h);
-                // Trail effect for Ultimate
                 if(this.type === 5) {
                     ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
                     ctx.fillRect(this.x - 10, this.y, this.w + 20, this.h + 50);
@@ -495,7 +492,6 @@
                 }
             }
             draw() {
-                // Shield Effect if not vulnerable
                 if (player.weaponLevel !== 5) {
                     ctx.strokeStyle = '#ef4444';
                     ctx.lineWidth = 3;
@@ -505,7 +501,6 @@
                     ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
                     ctx.fill();
                 }
-
                 ctx.fillStyle = '#dc2626'; ctx.fillRect(this.x, this.y, this.w, this.h);
                 ctx.fillStyle = '#7f1d1d'; ctx.fillRect(this.x + 40, this.y + 50, 30, 30); ctx.fillRect(this.x + 130, this.y + 50, 30, 30);
                 ctx.fillRect(this.x + 60, this.y + 110, 80, 10);
@@ -571,7 +566,6 @@
             stars.forEach(s => { s.y += s.speed; if(s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; } ctx.fillRect(s.x, s.y, 2, 2); });
         }
 
-        // --- INPUT ---
         const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false, ' ': false };
         window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
         window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
@@ -600,22 +594,18 @@
         }
         window.resumeGame = resumeGame;
 
-        // --- LOGIC ---
         function checkGemCollection(type) {
-            // Update Tracker
             const code = POWERUP_INFO[type].code;
             if (gemsCollected[code] === false) {
                 gemsCollected[code] = true;
                 document.getElementById(`slot-${code}`).style.backgroundColor = POWERUP_INFO[type].color;
                 document.getElementById(`slot-${code}`).classList.add('active');
                 
-                // Check if ALL collected
                 if (gemsCollected.sum && gemsCollected.cre && gemsCollected.ana) {
-                    // UNLOCK ULTIMATE
                     setTimeout(() => {
                         player.weaponLevel = 5;
                         updateWeaponName();
-                        showInfoCard(5); // Show Ultimate Info
+                        showInfoCard(5); 
                     }, 500);
                 }
             }
@@ -653,24 +643,19 @@
                        b.y > boss.y && b.y < boss.y + boss.h) {
                         
                         if (b.type === 5) {
-                            // ULTIMATE HIT -> INSTANT WIN
                             createExplosion(boss.x + boss.w/2, boss.y + boss.h/2, '#ef4444');
                             createExplosion(boss.x, boss.y, '#ffffff');
                             createExplosion(boss.x + boss.w, boss.y + boss.h, '#ffffff');
                             boss = null;
                             gameOver(true);
                         } else {
-                            // Normal hits do nothing but explode
                             createExplosion(b.x, b.y, '#ffffff');
-                            // Maybe play a "clink" sound effect visual
                         }
                         b.markedForDeletion = true;
                     }
                 });
 
-                // Spawn specific gems if needed during boss
                 if (frames % 100 === 0) {
-                    // Ensure player gets missing gems
                     let neededType = null;
                     if (!gemsCollected.sum) neededType = 2;
                     else if (!gemsCollected.cre) neededType = 3;
